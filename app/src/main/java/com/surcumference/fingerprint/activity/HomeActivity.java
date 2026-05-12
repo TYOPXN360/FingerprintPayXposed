@@ -4,9 +4,6 @@ package com.surcumference.fingerprint.activity;
 import static com.surcumference.fingerprint.Constant.HELP_URL_ALIPAY;
 import static com.surcumference.fingerprint.Constant.HELP_URL_FAQ;
 import static com.surcumference.fingerprint.Constant.HELP_URL_LICENSE;
-import static com.surcumference.fingerprint.Constant.HELP_URL_QQ;
-import static com.surcumference.fingerprint.Constant.HELP_URL_TAOBAO;
-import static com.surcumference.fingerprint.Constant.HELP_URL_UNIONPAY;
 import static com.surcumference.fingerprint.Constant.HELP_URL_WECHAT;
 import static com.surcumference.fingerprint.Constant.PROJECT_URL;
 
@@ -50,9 +47,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
         List<PreferenceAdapter.Data> list = new ArrayList<>();
         list.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_help_wechat), Lang.getString(R.id.settings_sub_title_help_wechat)));
         list.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_help_alipay), Lang.getString(R.id.settings_sub_title_help_alipay)));
-        list.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_help_taobao), Lang.getString(R.id.settings_sub_title_help_taobao)));
-        list.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_help_qq), Lang.getString(R.id.settings_sub_title_help_qq)));
-        list.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_help_unionpay), Lang.getString(R.id.settings_sub_title_help_unionpay)));
+
         list.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_help_faq), Lang.getString(R.id.settings_sub_title_help_faq)));
         list.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_qq_group), Lang.getString(R.id.settings_sub_title_qq_group)));
         list.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_checkupdate), Lang.getString(R.id.settings_sub_title_checkupdate)));
@@ -77,12 +72,6 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
             WebActivity.openUrl(this, HELP_URL_WECHAT);
         } else if (Lang.getString(R.id.settings_title_help_alipay).equals(data.title)) {
             WebActivity.openUrl(this, HELP_URL_ALIPAY);
-        } else if (Lang.getString(R.id.settings_title_help_taobao).equals(data.title)) {
-            WebActivity.openUrl(this, HELP_URL_TAOBAO);
-        } else if (Lang.getString(R.id.settings_title_help_qq).equals(data.title)) {
-            WebActivity.openUrl(this, HELP_URL_QQ);
-        } else if (Lang.getString(R.id.settings_title_help_unionpay).equals(data.title)) {
-            WebActivity.openUrl(this, HELP_URL_UNIONPAY);
         } else if (Lang.getString(R.id.settings_title_help_faq).equals(data.title)) {
             WebActivity.openUrl(this, HELP_URL_FAQ);
         } else if (Lang.getString(R.id.settings_title_qq_group).equals(data.title)) {

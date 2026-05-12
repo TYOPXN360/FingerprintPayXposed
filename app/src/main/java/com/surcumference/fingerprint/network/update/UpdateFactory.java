@@ -52,11 +52,7 @@ public class UpdateFactory {
         }
         try {
             String packageName = context.getPackageName();
-            String fileName = PluginApp.runActionBaseOnCurrentPluginType(new HashMap<PluginType, Callable<String>>() {{
-                put(PluginType.Riru, () -> packageName + ".riru.zip");
-                put(PluginType.Zygisk, () -> packageName + ".zygisk.zip");
-                put(PluginType.Xposed, () -> packageName + ".apk");
-            }});
+            String fileName = packageName + ".apk";
             File targetFile = FileUtils.getSharableFile(context, fileName);
             FileUtils.delete(targetFile);
             new GithubUpdateChecker(BuildConfig.VERSION_NAME, Constant.UPDATE_URLS,
@@ -92,20 +88,7 @@ public class UpdateFactory {
                         dialogInterface.dismiss();
                     });
                     updateInfoView.withOnPositiveButtonClickListener((dialogInterface, i) -> {
-                        PluginApp.runActionBaseOnCurrentPluginType(new HashMap<PluginType, Callable<Object>>() {{
-                            put(PluginType.Riru, () -> {
-                                handleMagiskUpdate(context, updateInfo, dialogInterface);
-                                return null;
-                            });
-                            put(PluginType.Zygisk, () -> {
-                                handleMagiskUpdate(context, updateInfo, dialogInterface);
-                                return null;
-                            });
-                            put(PluginType.Xposed, () -> {
-                                handleXposedUpdate(context, updateInfo, dialogInterface);
-                                return null;
-                            });
-                        }});
+                        handleXposedUpdate(context, updateInfo, dialogInterface);
                     });
                     Task.onMain(200, updateInfoView::showInDialog);
                 }
@@ -114,28 +97,6 @@ public class UpdateFactory {
             //for OPPO R11 Plus 6.0 NoSuchFieldError: No instance field mResultListener
             L.e(e);
         }
-    }
-
-    private static void handleMagiskUpdate(Context context, UpdateInfo updateInfo, DialogInterface updateInfoViewDialogInterface) {
-        com.surcumference.fingerprint.util.UrlUtils.openUrl(context, updateInfo.pageUrl);
-        Task.onMain(1000, () -> Toaster.showLong(Lang.getString(R.id.toast_update_available)));
-        updateInfoViewDialogInterface.dismiss();
-    }
-
-    private static Map<PluginTarget, File> matchMagiskModuleFileListToPluginTarget(@Nullable File[] moduleZipFiles) {
-        Map<PluginTarget, File> map = new HashMap<>();
-        if (moduleZipFiles == null) {
-            return map;
-        }
-        PluginApp.iterateAllPluginTarget(pluginTarget -> {
-            for (File file : moduleZipFiles) {
-                if (file.getName().contains(pluginTarget.name().toLowerCase())) {
-                    map.put(pluginTarget, file);
-                    return;
-                }
-            }
-        });
-        return map;
     }
 
     private static void handleXposedUpdate(Context context, UpdateInfo updateInfo, DialogInterface updateInfoViewDialogInterface) {

@@ -53,12 +53,8 @@ android {
 }
 project.ext.appInfo = [
     Alipay:     "com.eg.android.AlipayGphone",
-    Taobao:     "com.taobao.taobao",
-    QQ:         "com.tencent.mobileqq",
     WeChat:     "com.tencent.mm",
-    UnionPay:   "com.unionpay",
 ]
-project.ext.moduleFrameworks = ['riru', 'zygisk']
 
 apply from: 'debug.gradle'
 apply from: 'update-json.gradle'

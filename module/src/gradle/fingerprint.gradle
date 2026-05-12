@@ -1,7 +1,0 @@
-afterEvaluate {
-    android.libraryVariants.forEach { variant ->
-        def magiskDir = file("$rootDir/template/magisk_module")
-        variant.assembleProvider.get().doLast {
-        }
-    }
-}

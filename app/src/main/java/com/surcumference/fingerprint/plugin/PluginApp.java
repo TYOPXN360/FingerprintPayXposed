@@ -45,8 +45,6 @@ public class PluginApp {
     public static<T> T runActionBaseOnCurrentPluginType(Map<PluginType, Callable<T>> actionMap) {
         PluginType pluginType = PluginApp.getCurrentType();
         switch (pluginType) {
-            case Riru:
-            case Zygisk:
             case Xposed:
                 if (!actionMap.containsKey(pluginType)) {
                     throw new IllegalArgumentException("Plugin type:" + pluginType.name() + " is not in actionMap");
@@ -56,8 +54,6 @@ public class PluginApp {
                 throw new RuntimeException("Unsupported plugin type:" + pluginType.name());
         }
         switch (pluginType) {
-            case Riru:
-            case Zygisk:
             case Xposed:
                 try {
                     return actionMap.get(pluginType).call();
