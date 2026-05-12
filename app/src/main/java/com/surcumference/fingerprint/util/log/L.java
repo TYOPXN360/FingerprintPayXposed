@@ -32,17 +32,20 @@ public class L {
     public static void d(Object... arg) {
         final String log = arg2string(arg);
         if (log != null) {
-            sILog.debug(LOG_TAG + getTraceTag(), log);
+            sILog.d(LOG_TAG + getTraceTag(), log);
         }
     }
 
     public static void e(Object... arg) {
         final String log = arg2string(arg);
         if (log != null) {
-            sILog.error("tag:" + LOG_TAG + " ver:" + BuildConfig.VERSION_NAME + " " + getTraceTag(), log);
+            sILog.e("tag:" + LOG_TAG + " ver:" + BuildConfig.VERSION_NAME + " " + getTraceTag(), log);
         }
     }
 
+    public static void v(Object... arg) { final String log = arg2string(arg); if (log != null) sILog.v(LOG_TAG + getTraceTag(), log); }
+    public static void i(Object... arg) { final String log = arg2string(arg); if (log != null) sILog.i(LOG_TAG + getTraceTag(), log); }
+    public static void w(Object... arg) { final String log = arg2string(arg); if (log != null) sILog.w(LOG_TAG + getTraceTag(), log); }
     private static String arg2string(Object[] arg) {
         StringBuilder sb = new StringBuilder();
         try {

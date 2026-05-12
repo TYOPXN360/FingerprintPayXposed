@@ -16,9 +16,10 @@ import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModule;
 import io.github.libxposed.api.XposedModuleInterface;
 @Keep public class XposedInit extends XposedModule {
+    public static XposedInit sInstance;
     public XposedInit() {}
     @Override public void onModuleLoaded(XposedModuleInterface.ModuleLoadedParam param) {
-        L.d("Module loaded, API version: " + getApiVersion());
+        L.i("Module loaded, API version: " + getApiVersion());
     }
     @Override public void onPackageLoaded(XposedModuleInterface.PackageLoadedParam lpparam) {
         if (PACKAGE_NAME_WECHAT.equals(lpparam.getPackageName())) initWechat(lpparam);
@@ -26,25 +27,25 @@ import io.github.libxposed.api.XposedModuleInterface;
         initGeneric(lpparam);
     }
     private void initWechat(XposedModuleInterface.PackageLoadedParam lpparam) {
-        L.d("loaded: [" + lpparam.getPackageName() + "]" + " version:" + BuildConfig.VERSION_NAME);
+        L.i("loaded: [" + lpparam.getPackageName() + "]" + " version:" + BuildConfig.VERSION_NAME);
         hook(Instrumentation.class.getDeclaredMethod("callApplicationOnCreate", Application.class))
             .priority(XposedInterface.PRIORITY_DEFAULT)
             .hooker(new XposedInterface.Hooker() {
                 @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
-                    L.d("Application onCreate");
+                    L.v("Application onCreate");
                     Application app = (Application) chain.getArgs()[0];
                     XposedPluginLoader.load(WeChatPlugin.class, app, lpparam);
                 }
             });
     }
     private void initAlipay(XposedModuleInterface.PackageLoadedParam lpparam) {
-        L.d("loaded: [" + lpparam.getPackageName() + "]" + " version:" + BuildConfig.VERSION_NAME);
+        L.i("loaded: [" + lpparam.getPackageName() + "]" + " version:" + BuildConfig.VERSION_NAME);
         hook(Instrumentation.class.getDeclaredMethod("callApplicationOnCreate", Application.class))
             .priority(XposedInterface.PRIORITY_DEFAULT)
             .hooker(new XposedInterface.Hooker() {
                 private boolean mCalled = false;
                 @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
-                    L.d("Application onCreate");
+                    L.v("Application onCreate");
                     if (!mCalled) {
                         mCalled = true;
                         Application app = (Application) chain.getArgs()[0];

@@ -21,7 +21,7 @@ import io.github.libxposed.api.XposedModuleInterface;
 public class AlipayPlugin {
     @Keep
     public void main(final Application application, final XposedInit module, final XposedModuleInterface.PackageLoadedParam lpparam) {
-        L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
+        L.i("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
         try {
             PluginApp.setup(PluginType.Xposed, PluginTarget.Alipay);
             Toaster.init(application);

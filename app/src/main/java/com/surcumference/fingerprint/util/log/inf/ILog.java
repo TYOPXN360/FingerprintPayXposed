@@ -1,10 +1,9 @@
 package com.surcumference.fingerprint.util.log.inf;
 
-/**
- * Created by Jason on 2017/9/10.
- */
-
 public interface ILog {
-    void debug(String tag, String msg);
-    void error(String tag, String msg);
+    void v(String tag, String msg);
+    void d(String tag, String msg);
+    void i(String tag, String msg);
+    void w(String tag, String msg);
+    void e(String tag, String msg);
 }
