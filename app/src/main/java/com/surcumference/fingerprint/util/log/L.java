@@ -20,7 +20,7 @@ public class L {
     static {
         ILog iLog;
         try {
-            Class.forName("de.robv.android.xposed.XposedBridge");
+            Class.forName("io.github.libxposed.api.XposedModule");
             iLog = new XposedLog();
         } catch (Exception | Error ignore) {
             iLog = new GenericLog();

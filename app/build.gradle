@@ -67,5 +67,5 @@ dependencies {
     implementation 'com.github.AndroidDeveloperLB:MaterialPreferenceLibrary:10'
     implementation 'com.lzy.net:okgo:3.0.4'
     implementation 'com.github.getActivity:Toaster:12.6'
-    compileOnly 'de.robv.android.xposed:api:53'
+    compileOnly 'io.github.libxposed:api:101.0.1'
 }

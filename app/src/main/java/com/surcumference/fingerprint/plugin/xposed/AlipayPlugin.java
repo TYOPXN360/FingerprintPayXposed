@@ -1,12 +1,8 @@
 package com.surcumference.fingerprint.plugin.xposed;
-
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-
 import androidx.annotation.Keep;
-
 import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
@@ -18,20 +14,13 @@ import com.surcumference.fingerprint.plugin.PluginFactory;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.Umeng;
 import com.surcumference.fingerprint.util.log.L;
-
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
-
-/**
- * Created by Jason on 2017/9/8.
- */
+import com.surcumference.fingerprint.xposed.XposedInit;
+import io.github.libxposed.api.XposedInterface;
+import io.github.libxposed.api.XposedModuleInterface;
 
 public class AlipayPlugin {
-
     @Keep
-    public void main(final Application application, final XC_LoadPackage.LoadPackageParam lpparam) {
+    public void main(final Application application, final XposedInit module, final XposedModuleInterface.PackageLoadedParam lpparam) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
         try {
             PluginApp.setup(PluginType.Xposed, PluginTarget.Alipay);
@@ -39,23 +28,20 @@ public class AlipayPlugin {
             Umeng.init(application);
             UpdateFactory.lazyUpdateWhenActivityAlive();
             IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_ALIPAY);
-            XposedHelpers.findAndHookMethod(Activity.class, "onCreate", Bundle.class, new XC_MethodHook() {
-
-                @TargetApi(21)
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    plugin.onActivityCreated((Activity) param.thisObject, (Bundle) param.args[0]);
-                }
-            });
-            XposedHelpers.findAndHookMethod(Activity.class, "onResume", new XC_MethodHook() {
-
-                @TargetApi(21)
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    plugin.onActivityResumed((Activity) param.thisObject);
-                }
-            });
-        } catch (Throwable l) {
-            L.e(l);
-            XposedBridge.log(l);
-        }
+            module.hook(Activity.class.getDeclaredMethod("onResume"))
+                .priority(XposedInterface.PRIORITY_DEFAULT)
+                .hooker(new XposedInterface.Hooker() {
+                    @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
+                        plugin.onActivityResumed((Activity) chain.getThisObject());
+                    }
+                });
+            module.hook(Activity.class.getDeclaredMethod("onCreate", Bundle.class))
+                .priority(XposedInterface.PRIORITY_DEFAULT)
+                .hooker(new XposedInterface.Hooker() {
+                    @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
+                        plugin.onActivityCreated((Activity) chain.getThisObject(), (Bundle) chain.getArgs()[0]);
+                    }
+                });
+        } catch (Throwable l) { L.e(l); }
     }
 }

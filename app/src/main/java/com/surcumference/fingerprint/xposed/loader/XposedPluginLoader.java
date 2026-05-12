@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import io.github.libxposed.api.XposedModule;
 
 /**
  * Created by Jason on 2017/9/8.
@@ -18,7 +18,7 @@ public class XposedPluginLoader {
 
     private static Map<Class, Object> sPluginCache = new HashMap<>();
 
-    public static void load(Class pluginClz, Application application, XC_LoadPackage.LoadPackageParam lpparam) throws Exception {
+    public static void load(Class pluginClz, Application application, XposedModuleInterface.PackageLoadedParam lpparam) throws Exception {
         Object pluginObj;
         if ((pluginObj = sPluginCache.get(pluginClz)) == null) {
             synchronized (pluginClz) {
@@ -35,8 +35,8 @@ public class XposedPluginLoader {
         return pluginClz.newInstance();
     }
 
-    private static void callPluginMain(Object pluginObj, Context context, XC_LoadPackage.LoadPackageParam lpparam) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
-        Method method = pluginObj.getClass().getDeclaredMethod("main", Application.class, XC_LoadPackage.LoadPackageParam.class);
+    private static void callPluginMain(Object pluginObj, Context context, XposedModuleInterface.PackageLoadedParam lpparam) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
+        Method method = pluginObj.getClass().getDeclaredMethod("main", Application.class, XposedModuleInterface.PackageLoadedParam.class);
         method.invoke(pluginObj, context, lpparam);
     }
 
