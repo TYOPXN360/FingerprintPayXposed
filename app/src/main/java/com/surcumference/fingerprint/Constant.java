@@ -11,6 +11,14 @@ public class Constant {
     public static final String AUTHORITY_WECHAT = "com.tencent.mm.external.fileprovider";
     public static final String AUTHORITY_ALIPAY = "com.eg.android.AlipayGphone.asUpgradeFileProvider";
     public static final String AUTHORITY_FINGERPRINT_PAY = BuildConfig.APPLICATION_ID + ".fileprovider";
+    public static final String PACKAGE_NAME_QQ = "com.tencent.mobileqq";
+    public static final String PACKAGE_NAME_TAOBAO = "com.taobao.taobao";
+    public static final String PACKAGE_NAME_UNIONPAY = "com.unionpay";
+    public static final String AUTHORITY_QQ = "com.tencent.mobileqq.fileprovider";
+    public static final String AUTHORITY_TAOBAO = "com.taobao.taobao.fileprovider";
+    public static final String AUTHORITY_UNIONPAY = "com.unionpay.fileprovider";
+    public static final String AUTHOR_QQ = "";
+    public static final String AUTHOR_QQ_NAME = "";
     public static final String HELP_URL_WECHAT = "https://gitee.com/eritpchy/FingerprintPay/blob/main/doc/WeChat/README.md";
     public static final String HELP_URL_ALIPAY = "https://gitee.com/eritpchy/FingerprintPay/blob/main/doc/Alipay/README.md";
     public static final String HELP_URL_FAQ = "https://gitee.com/eritpchy/FingerprintPay/blob/main/README.md#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98";

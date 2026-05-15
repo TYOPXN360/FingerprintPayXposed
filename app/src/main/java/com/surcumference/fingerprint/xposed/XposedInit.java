@@ -11,7 +11,7 @@ import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.plugin.xposed.AlipayPlugin;
 import com.surcumference.fingerprint.plugin.xposed.WeChatPlugin;
 import com.surcumference.fingerprint.util.log.L;
-import com.surcumference.fingerprint.xposed.loader.XposedPluginLoader;
+// import com.surcumference.fingerprint.xposed.loader.XposedPluginLoader;
 import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModule;
 import io.github.libxposed.api.XposedModuleInterface;
@@ -34,7 +34,7 @@ import io.github.libxposed.api.XposedModuleInterface;
                 @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
                     L.v("Application onCreate");
                     Application app = (Application) chain.getArgs()[0];
-                    XposedPluginLoader.load(WeChatPlugin.class, app, lpparam);
+                    // XposedPluginLoader.load(WeChatPlugin.class, app, lpparam);
                 }
             });
     }
@@ -49,7 +49,7 @@ import io.github.libxposed.api.XposedModuleInterface;
                     if (!mCalled) {
                         mCalled = true;
                         Application app = (Application) chain.getArgs()[0];
-                        XposedPluginLoader.load(AlipayPlugin.class, app, lpparam);
+                        // XposedPluginLoader.load(AlipayPlugin.class, app, lpparam);
                     }
                 }
             });
