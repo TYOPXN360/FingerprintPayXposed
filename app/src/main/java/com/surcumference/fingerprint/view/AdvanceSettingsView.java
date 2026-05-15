@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.hjq.toast.Toaster;
+import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.adapter.PreferenceAdapter;
@@ -77,8 +78,43 @@ public class AdvanceSettingsView extends DialogFrameLayout implements AdapterVie
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_use_biometric_api), Lang.getString(R.id.settings_sub_title_use_biometric_api), true, config.isUseBiometricApi()));
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_volume_down_fingerprint_temporary_disable), Lang.getString(R.id.settings_sub_title_volume_down_fingerprint_temporary_disable), true,
                 config.isVolumeDownMonitorEnabled() && !config.isUseBiometricApi()));
-        }
+        mListAdapter = new PreferenceAdapter(mSettingsDataList);
+        rootVerticalLayout.addView(lineView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtils.dip2px(context, 2)));
+        rootVerticalLayout.addView(mListView);
+        this.addView(rootVerticalLayout);
+    }
 
+
+    @Override
+    public String getDialogTitle() {
+        return Lang.getString(R.id.app_settings_name) + " " + BuildConfig.VERSION_NAME;
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        mListView.setAdapter(mListAdapter);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+        PreferenceAdapter.Data data = mListAdapter.getItem(position);
+        final Context context = getContext();
+        final Config config = Config.from(context);
+        if (Lang.getString(R.id.settings_title_no_fingerprint_icon).equals(data.title)) {
+            data.selectionState = !data.selectionState;
+            config.setShowFingerprintIcon(data.selectionState);
+            mListAdapter.notifyDataSetChanged();
+        } else if (Lang.getString(R.id.settings_title_use_biometric_api).equals(data.title)) {
+            data.selectionState = !data.selectionState;
+            config.setUseBiometricApi(data.selectionState);
+            mListAdapter.notifyDataSetChanged();
+        } else if (Lang.getString(R.id.settings_title_volume_down_fingerprint_temporary_disable).equals(data.title)) {
+            data.selectionState = !data.selectionState;
+            config.setVolumeDownMonitorEnabled(data.selectionState);
+            mListAdapter.notifyDataSetChanged();
+        }
+    }
 
     private PreferenceAdapter.Data findDataItem(String title) {
         for (PreferenceAdapter.Data data : mSettingsDataList) {
