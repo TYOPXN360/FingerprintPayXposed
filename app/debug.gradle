@@ -3,9 +3,8 @@ ext {
     xposed = project.findProperty('xposed')?.toBoolean() ?: false
 }
 
-if (!project.hasProperty('moduleFrameworks')) {
-    project.ext.moduleFrameworks = []
-}
+// Ensure moduleFrameworks exists
+project.ext.moduleFrameworks = project.ext.has('moduleFrameworks') ? project.ext.moduleFrameworks : []
 
 def adbPushToAppFiles(dexPath, targetName, targetPackage) {
     exec {
