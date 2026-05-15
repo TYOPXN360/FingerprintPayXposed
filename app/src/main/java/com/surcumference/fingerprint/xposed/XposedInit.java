@@ -27,46 +27,58 @@ import io.github.libxposed.api.XposedModuleInterface;
         initGeneric(lpparam);
     }
     private void initWechat(XposedModuleInterface.PackageLoadedParam lpparam) {
-        L.i("loaded: [" + lpparam.getPackageName() + "]" + " version:" + BuildConfig.VERSION_NAME);
-        hook(Instrumentation.class.getDeclaredMethod("callApplicationOnCreate", Application.class))
-            .setPriority(XposedInterface.PRIORITY_DEFAULT)
-            .intercept(new XposedInterface.Hooker() {
-                @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
-                    L.v("Application onCreate");
-                    Application app = (Application) chain.getArgs().get(0);
-                    new WeChatPlugin().main(app, XposedInit.this, lpparam);
-                    return chain.proceed();
-                }
-            });
-    }
-    private void initAlipay(XposedModuleInterface.PackageLoadedParam lpparam) {
-        L.i("loaded: [" + lpparam.getPackageName() + "]" + " version:" + BuildConfig.VERSION_NAME);
-        hook(Instrumentation.class.getDeclaredMethod("callApplicationOnCreate", Application.class))
-            .setPriority(XposedInterface.PRIORITY_DEFAULT)
-            .intercept(new XposedInterface.Hooker() {
-                private boolean mCalled = false;
-                @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
-                    L.v("Application onCreate");
-                    if (!mCalled) {
-                        mCalled = true;
-                        Application app = (Application) chain.getArgs().get(0);
-                        new AlipayPlugin().main(app, XposedInit.this, lpparam);
-                    }
-                    return chain.proceed();
-                }
-            });
-    }
-    private void initGeneric(XposedModuleInterface.PackageLoadedParam lpparam) {
-        if ("android".equals(lpparam.getApplicationInfo().processName) || PACKAGE_NAME_WECHAT.equals(lpparam.getPackageName())) {
-            hook(ActivityManager.class.getDeclaredMethod("checkComponentPermission", String.class, int.class, int.class, boolean.class))
+        try {
+            L.i("loaded: [" + lpparam.getPackageName() + "]" + " version:" + BuildConfig.VERSION_NAME);
+            hook(Instrumentation.class.getDeclaredMethod("callApplicationOnCreate", Application.class))
                 .setPriority(XposedInterface.PRIORITY_DEFAULT)
                 .intercept(new XposedInterface.Hooker() {
                     @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
-                        String p = (String) chain.getArgs().get(0);
-                        if (!TextUtils.isEmpty(p) && p.contains("MANAGE_USERS")) return PackageManager.PERMISSION_GRANTED;
+                        L.v("Application onCreate");
+                        Application app = (Application) chain.getArgs().get(0);
+                        new WeChatPlugin().main(app, XposedInit.this, lpparam);
                         return chain.proceed();
                     }
                 });
+        } catch (NoSuchMethodException e) {
+            L.e(e);
+        }
+    }
+    private void initAlipay(XposedModuleInterface.PackageLoadedParam lpparam) {
+        try {
+            L.i("loaded: [" + lpparam.getPackageName() + "]" + " version:" + BuildConfig.VERSION_NAME);
+            hook(Instrumentation.class.getDeclaredMethod("callApplicationOnCreate", Application.class))
+                .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                .intercept(new XposedInterface.Hooker() {
+                    private boolean mCalled = false;
+                    @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
+                        L.v("Application onCreate");
+                        if (!mCalled) {
+                            mCalled = true;
+                            Application app = (Application) chain.getArgs().get(0);
+                        new AlipayPlugin().main(app, XposedInit.this, lpparam);
+                        }
+                        return chain.proceed();
+                    }
+                });
+        } catch (NoSuchMethodException e) {
+            L.e(e);
+        }
+    }
+    private void initGeneric(XposedModuleInterface.PackageLoadedParam lpparam) {
+        try {
+            if ("android".equals(lpparam.getApplicationInfo().processName) || PACKAGE_NAME_WECHAT.equals(lpparam.getPackageName())) {
+                hook(ActivityManager.class.getDeclaredMethod("checkComponentPermission", String.class, int.class, int.class, boolean.class))
+                    .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                    .intercept(new XposedInterface.Hooker() {
+                        @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
+                            String p = (String) chain.getArgs().get(0);
+                            if (!TextUtils.isEmpty(p) && p.contains("MANAGE_USERS")) return PackageManager.PERMISSION_GRANTED;
+                            return chain.proceed();
+                        }
+                    });
+            }
+        } catch (NoSuchMethodException e) {
+            L.e(e);
         }
     }
 }
