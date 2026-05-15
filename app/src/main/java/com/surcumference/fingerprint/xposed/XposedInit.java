@@ -57,7 +57,7 @@ import io.github.libxposed.api.XposedModuleInterface;
             });
     }
     private void initGeneric(XposedModuleInterface.PackageLoadedParam lpparam) {
-        if ("android".equals(lpparam.getProcessName()) || PACKAGE_NAME_WECHAT.equals(lpparam.getPackageName())) {
+        if ("android".equals(lpparam.getApplicationInfo().processName) || PACKAGE_NAME_WECHAT.equals(lpparam.getPackageName())) {
             hook(ActivityManager.class.getDeclaredMethod("checkComponentPermission", String.class, int.class, int.class, boolean.class))
                 .setPriority(XposedInterface.PRIORITY_DEFAULT)
                 .intercept(new XposedInterface.Hooker() {
