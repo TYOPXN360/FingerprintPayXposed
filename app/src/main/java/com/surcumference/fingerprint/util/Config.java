@@ -115,6 +115,14 @@ public class Config {
         mCache.sharedPreferences.edit().putBoolean("volume_down_monitor_enabled", on).apply();
     }
 
+    public boolean isShowAppIcon() {
+        return mCache.sharedPreferences.getBoolean("show_icon", true);
+    }
+
+    public void setShowAppIcon(boolean on) {
+        mCache.sharedPreferences.edit().putBoolean("show_icon", on).apply();
+    }
+
     public void setSkipVersion(String version) {
         mCache.sharedPreferences.edit().putString("skip_version", version).apply();
         mCache.mainAppSharedPreferences.edit().putString("skip_version", version).apply();
