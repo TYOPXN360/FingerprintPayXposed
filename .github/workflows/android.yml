@@ -37,13 +37,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-      - name: Build Riru modules
-        run: cd ./module && bash ./make.sh
-        env:
-          BUILD_RELEASE_MINIFYENABLED: ${{ vars.BUILD_RELEASE_MINIFYENABLED }}
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
