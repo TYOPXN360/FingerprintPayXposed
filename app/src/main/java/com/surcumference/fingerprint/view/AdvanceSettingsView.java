@@ -78,7 +78,6 @@ public class AdvanceSettingsView extends DialogFrameLayout implements AdapterVie
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_volume_down_fingerprint_temporary_disable), Lang.getString(R.id.settings_sub_title_volume_down_fingerprint_temporary_disable), true,
                 config.isVolumeDownMonitorEnabled() && !config.isUseBiometricApi()));
         }
-    }
 
 
     private PreferenceAdapter.Data findDataItem(String title) {
