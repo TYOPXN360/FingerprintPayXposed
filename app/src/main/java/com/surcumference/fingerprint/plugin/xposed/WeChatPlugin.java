@@ -31,25 +31,28 @@ public class WeChatPlugin {
             IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_WECHAT);
             if (!Tools.isCurrentUserOwner(application)) {
                 module.hook(UserHandle.class.getDeclaredMethod("getUserId", int.class))
-                    .priority(XposedInterface.PRIORITY_DEFAULT)
-                    .hooker(new XposedInterface.Hooker() {
-                        @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
-                            if (plugin.getMockCurrentUser()) chain.setResult(0);
+                    .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                    .intercept(new XposedInterface.Hooker() {
+                        @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
+                            if (plugin.getMockCurrentUser()) return 0;
+                            return chain.proceed();
                         }
                     });
             }
             module.hook(Activity.class.getDeclaredMethod("onResume"))
-                .priority(XposedInterface.PRIORITY_DEFAULT)
-                .hooker(new XposedInterface.Hooker() {
-                    @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
+                .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                .intercept(new XposedInterface.Hooker() {
+                    @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
                         plugin.onActivityResumed((Activity) chain.getThisObject());
+                        return chain.proceed();
                     }
                 });
             module.hook(Activity.class.getDeclaredMethod("onPause"))
-                .priority(XposedInterface.PRIORITY_DEFAULT)
-                .hooker(new XposedInterface.Hooker() {
-                    @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
+                .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                .intercept(new XposedInterface.Hooker() {
+                    @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
                         plugin.onActivityPaused((Activity) chain.getThisObject());
+                        return chain.proceed();
                     }
                 });
         } catch (Throwable l) { L.e(l); }

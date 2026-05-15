@@ -29,17 +29,19 @@ public class AlipayPlugin {
             UpdateFactory.lazyUpdateWhenActivityAlive();
             IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_ALIPAY);
             module.hook(Activity.class.getDeclaredMethod("onResume"))
-                .priority(XposedInterface.PRIORITY_DEFAULT)
-                .hooker(new XposedInterface.Hooker() {
-                    @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
+                .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                .intercept(new XposedInterface.Hooker() {
+                    @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
                         plugin.onActivityResumed((Activity) chain.getThisObject());
+                        return chain.proceed();
                     }
                 });
             module.hook(Activity.class.getDeclaredMethod("onCreate", Bundle.class))
-                .priority(XposedInterface.PRIORITY_DEFAULT)
-                .hooker(new XposedInterface.Hooker() {
-                    @Override public void beforeHookedMethod(XposedInterface.Chain chain) {
-                        plugin.onActivityCreated((Activity) chain.getThisObject(), (Bundle) chain.getArgs()[0]);
+                .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                .intercept(new XposedInterface.Hooker() {
+                    @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
+                        plugin.onActivityCreated((Activity) chain.getThisObject(), (Bundle) chain.getArgs().get(0));
+                        return chain.proceed();
                     }
                 });
         } catch (Throwable l) { L.e(l); }

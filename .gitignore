@@ -8,3 +8,4 @@
 /.idea
 /app/release/
 /module/build/
+.deepseek/
