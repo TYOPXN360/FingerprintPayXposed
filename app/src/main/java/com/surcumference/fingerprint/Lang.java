@@ -36,9 +36,6 @@ public class Lang {
                 return tr("微信指纹", "微信指纹", "WeChat fingerprint pay");
             case R.id.settings_title_help_alipay:
                 return tr("支付宝指纹", "支付寶指纹", "Alipay fingerprint pay");
-                return tr("淘宝指纹", "淘宝指纹", "Taobao fingerprint pay");
-                return tr("QQ指纹", "QQ指纹", "QQ fingerprint pay");
-                return tr("云闪付指纹", "雲閃付指纹", "UnionPay fingerprint pay");
             case R.id.settings_title_qq_group:
                 return tr("QQ交流群", "QQ交流群", "QQ Group");
             case R.id.settings_title_help_faq:
@@ -54,9 +51,6 @@ public class Lang {
             case R.id.settings_sub_title_help_wechat:
                 return tr("查看使用教程", "查看使用教程", "Tutorial");
             case R.id.settings_sub_title_help_alipay:
-                return tr("查看使用教程", "查看使用教程", "Tutorial");
-                return tr("查看使用教程", "查看使用教程", "Tutorial");
-                return tr("查看使用教程", "查看使用教程", "Tutorial");
                 return tr("查看使用教程", "查看使用教程", "Tutorial");
             case R.id.settings_sub_title_qq_group:
                 return tr("665167891", "665167891", "665167891");
@@ -117,8 +111,6 @@ public class Lang {
                 return tr("使用 Biometric Api", "使用 Biometric Api", "Use Biometric Api");
             case R.id.settings_title_volume_down_fingerprint_temporary_disable:
                 return tr("音量\uD83D\uDC47切换密码输入", "音量\uD83D\uDC47禁用切換密碼輸入", "Vol- for password input");
-                return tr("开始记录日志", "開始記錄日誌", "Start logging");
-                return tr("停止记录日志", "停止記錄日誌", "Stop logging");
             case R.id.settings_sub_title_switch_alipay:
                 return tr("启用支付宝指纹支付", "啟用支付宝指紋支付", "Enable fingerprint payment for Alipay");
             case R.id.settings_sub_title_switch_wechat:
@@ -147,8 +139,6 @@ public class Lang {
                 return tr("实验性, 仅 Android 9+ 可用", "實驗性, 僅 Android 9+ 可用", "Experimental, available only on Android 9+");
             case R.id.settings_sub_title_volume_down_fingerprint_temporary_disable:
                 return tr("按下按键会临时禁用指纹支付1分钟(仅应用内认证有效)", "按下按鍵會臨時禁用指紋支付1分鐘(僅應用內認證有效)", "Pressing the button will temporarily disable fingerprint payment for 1 minute (only valid for in-app authentication)");
-                return tr("开始 --> 你的表演 --> 停止 --> 发送给开发者", "開始 --> 你的表演 --> 停止 --> 發送給開發者", "Start --> Payment operation --> Stop --> Send to developer");
-                return tr("开始 --> 你的表演 --> 停止 --> 发送给开发者", "開始 --> 你的表演 --> 停止 --> 發送給開發者", "Start --> Payment operation --> Stop --> Send to developer");
             case R.id.fingerprint_verification:
                 return tr("请验证指纹", "請驗證指紋", "Fingerprint verification");
             case R.id.wechat_general:
