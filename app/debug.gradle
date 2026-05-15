@@ -1,3 +1,8 @@
+ext {
+    adbPath = "${android.getSdkDirectory()}/platform-tools/adb"
+    xposed = project.findProperty('xposed')?.toBoolean() ?: false
+}
+
 if (!project.hasProperty('moduleFrameworks')) {
     project.ext.moduleFrameworks = []
 }
@@ -67,16 +72,16 @@ android.applicationVariants.all { variant ->
             def stopTask = tasks.findByName("stop$name")
 
             if (project.hasProperty('moduleFrameworks')) {
-            project.ext.moduleFrameworks.each { framework ->
-                def moduleTask = tasks.create(name: "${buildTypeName}${name}${framework.capitalize()}", dependsOn: [dexTask]) {
-                    doLast {
-                        def dexPath = fileTree(dir: new File(project.buildDir, "intermediates/dex/${buildTypeName}"), include: '**/classes.dex').files.sort { it.lastModified() }.last().absolutePath
-                        adbPushToAppFiles(dexPath, "${framework}-module-xfingerprint-pay-${name.toLowerCase()}.dex", packageName)
+                project.ext.moduleFrameworks.each { framework ->
+                    def moduleTask = tasks.create(name: "${buildTypeName}${name}${framework.capitalize()}", dependsOn: [dexTask]) {
+                        doLast {
+                            def dexPath = fileTree(dir: new File(project.buildDir, "intermediates/dex/${buildTypeName}"), include: '**/classes.dex').files.sort { it.lastModified() }.last().absolutePath
+                            adbPushToAppFiles(dexPath, "${framework}-module-xfingerprint-pay-${name.toLowerCase()}.dex", packageName)
+                        }
                     }
+                    moduleTask.finalizedBy(startTask)
                 }
-                moduleTask.finalizedBy(startTask)
             }
-        }
         }
 
         if (variant.install != null) {
