@@ -35,6 +35,8 @@ allprojects {
     }
 }
 
+ext.moduleFrameworks = []
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
