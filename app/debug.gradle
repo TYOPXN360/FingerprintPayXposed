@@ -66,6 +66,7 @@ android.applicationVariants.all { variant ->
             def startTask = tasks.findByName("start$name")
             def stopTask = tasks.findByName("stop$name")
 
+            if (project.hasProperty('moduleFrameworks')) {
             project.ext.moduleFrameworks.each { framework ->
                 def moduleTask = tasks.create(name: "${buildTypeName}${name}${framework.capitalize()}", dependsOn: [dexTask]) {
                     doLast {
@@ -75,6 +76,7 @@ android.applicationVariants.all { variant ->
                 }
                 moduleTask.finalizedBy(startTask)
             }
+        }
         }
 
         if (variant.install != null) {
