@@ -118,18 +118,13 @@ public class FileUtils {
     public static String getAuthorityForPackage(String packageName) {
         if (Constant.PACKAGE_NAME_ALIPAY.equals(packageName)) {
             return Constant.AUTHORITY_ALIPAY;
-        } else if (Constant.PACKAGE_NAME_QQ.equals(packageName)) {
-            return Constant.AUTHORITY_QQ;
-        } else if (Constant.PACKAGE_NAME_TAOBAO.equals(packageName)) {
-            return Constant.AUTHORITY_TAOBAO;
         } else if (Constant.PACKAGE_NAME_WECHAT.equals(packageName)) {
             return Constant.AUTHORITY_WECHAT;
-        } else if (Constant.PACKAGE_NAME_UNIONPAY.equals(packageName)) {
-            return Constant.AUTHORITY_UNIONPAY;
         } else if (BuildConfig.APPLICATION_ID.equals(packageName)) {
             return Constant.AUTHORITY_FINGERPRINT_PAY;
         } else {
-            throw new RuntimeException("getAuthorityForPackage package:" + packageName + " is not support yet");
+            // Fallback to a default authority (use application ID + ".fileprovider")
+            return BuildConfig.APPLICATION_ID + ".fileprovider";
         }
     }
 
