@@ -74,7 +74,7 @@ private fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = Lang.getString(R.id.generic_settings),
+                        text = LocalContext.current.getString(R.string.generic_settings),
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
@@ -112,7 +112,7 @@ private fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = Lang.getString(R.id.settings_title_show_icon),
+                            text = LocalContext.current.getString(R.string.settings_title_show_icon),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                         )
