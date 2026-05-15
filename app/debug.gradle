@@ -1,7 +1,7 @@
-ext {
-    adbPath = "${android.getSdkDirectory()}/platform-tools/adb"
-    xposed = project.findProperty('xposed')?.toBoolean() ?: false
+if (!project.hasProperty('moduleFrameworks')) {
+    project.ext.moduleFrameworks = []
 }
+
 def adbPushToAppFiles(dexPath, targetName, targetPackage) {
     exec {
         executable = adbPath
