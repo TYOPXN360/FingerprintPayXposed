@@ -701,7 +701,7 @@ public class AlipayBasePlugin implements IAppPlugin {
     private boolean tryInputGenericPassword(Activity activity, String password) {
 
         EditText pwdEditText = findPasswordEditText(activity);
-        L.d("[支付宝] tryInput findPwdEditText=" + pwdEditText);
+        L.d("[支付宝] tryInput findPwdEditText=" + pwdEditText + " bounds=" + (pwdEditText != null ? pwdEditText.getWidth() + "x" + pwdEditText.getHeight() : "null"));
         if (pwdEditText == null) {
             L.d("[支付宝] tryInput fail: pwdEditText is null");
             return false;
@@ -712,33 +712,36 @@ public class AlipayBasePlugin implements IAppPlugin {
             L.d("[支付宝] tryInput fail: confirmBtn is null");
             return false;
         }
-        L.d("[支付宝] tryInput pwd=" + password + " bounds=" + pwdEditText.getWidth() + "x" + pwdEditText.getHeight());
+        L.d("[支付宝] tryInput pwd=" + password);
 
-        // 强制设为可见并聚焦
-        pwdEditText.setVisibility(View.VISIBLE);
+        // 激活焦点
         pwdEditText.setFocusable(true);
         pwdEditText.setFocusableInTouchMode(true);
         pwdEditText.requestFocus();
-        pwdEditText.bringToFront();
-
-        // 设宽高确保可见
-        if (pwdEditText.getWidth() <= 0 || pwdEditText.getHeight() <= 0) {
-            pwdEditText.layout(0, 0, 200, 50);
-        }
-
-        // 先点击激活
         pwdEditText.performClick();
 
-        // 延迟一点让系统处理焦点
-        pwdEditText.postDelayed(() -> {
-            L.d("[支付宝] tryInput setText now...");
-            pwdEditText.setText(password);
-            pwdEditText.postDelayed(() -> {
-                L.d("[支付宝] tryInput click confirm now...");
-                confirmPwdBtn.performClick();
-            }, 100);
-        }, 200);
-        L.d("[支付宝] tryInput setText + confirm posted");
+        // 等键盘渲染完成（EditText 宽高 > 0）再填充
+        pwdEditText.postDelayed(new Runnable() {
+            int retry = 0;
+            @Override public void run() {
+                if (pwdEditText.getWidth() > 0 && pwdEditText.getHeight() > 0) {
+                    L.d("[支付宝] tryInput EditText已渲染(" + pwdEditText.getWidth() + "x" + pwdEditText.getHeight() + "), setText...");
+                    pwdEditText.setText(password);
+                    pwdEditText.postDelayed(() -> {
+                        L.d("[支付宝] tryInput click confirm...");
+                        confirmPwdBtn.performClick();
+                    }, 150);
+                } else if (retry < 20) {
+                    retry++;
+                    L.d("[支付宝] tryInput 等待渲染中... retry=" + retry + " bounds=" + pwdEditText.getWidth() + "x" + pwdEditText.getHeight());
+                    pwdEditText.postDelayed(this, 300);
+                } else {
+                    L.d("[支付宝] tryInput 超时，直接setText+click");
+                    pwdEditText.setText(password);
+                    confirmPwdBtn.performClick();
+                }
+            }
+        }, 300);
         return true;
     }
 
