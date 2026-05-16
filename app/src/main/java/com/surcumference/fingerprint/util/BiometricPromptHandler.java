@@ -12,7 +12,7 @@ import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
-import com.surcumference.fingerprint.Config;
+import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.log.L;
 
 import java.nio.charset.StandardCharsets;
