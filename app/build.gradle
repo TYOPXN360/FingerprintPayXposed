@@ -18,7 +18,7 @@ android {
             minifyEnabled System.getenv("BUILD_RELEASE_MINIFYENABLED")?.toBoolean() ?: true
             shrinkResources System.getenv("BUILD_RELEASE_MINIFYENABLED")?.toBoolean() ?: true
             zipAlignEnabled true
-            proguardFiles 'proguard-rules.pro'
+            proguardFiles 'proguard-rules.pro', 'r8-rules.pro'
         }
     }
 
