@@ -42,10 +42,10 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Build with Gradle
+      - name: Build with Gradle (R8 minified)
         run:  rm -f app/keystore.jks && ./gradlew clean && ./gradlew ":app:assembleRelease" -Pxposed=true
         env:
-          BUILD_RELEASE_MINIFYENABLED: ${{ vars.BUILD_RELEASE_MINIFYENABLED }}
+          BUILD_RELEASE_MINIFYENABLED: true
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
