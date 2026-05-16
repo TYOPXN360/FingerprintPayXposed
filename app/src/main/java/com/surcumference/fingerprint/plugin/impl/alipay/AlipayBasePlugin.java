@@ -11,6 +11,7 @@ import android.os.*;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -711,14 +712,24 @@ public class AlipayBasePlugin implements IAppPlugin {
             L.d("[支付宝] tryInput fail: confirmBtn is null");
             return false;
         }
-        L.d("[支付宝] tryInput click focus pwd=" + password);
-        pwdEditText.performClick();
+        L.d("[支付宝] tryInput pwd=" + password);
         pwdEditText.requestFocus();
-        L.d("[支付宝] tryInput setText...");
-        pwdEditText.setText(password);
-        L.d("[支付宝] tryInput click confirm...");
-        confirmPwdBtn.performClick();
-        L.d("[支付宝] tryInput success!");
+        // 尝试通过 KeyEvent 模拟逐个字符输入
+        for (char c : password.toCharArray()) {
+            int keyCode = 0;
+            if (c >= '0' && c <= '9') {
+                keyCode = KeyEvent.KEYCODE_0 + (c - '0');
+            }
+            if (keyCode != 0) {
+                long time = SystemClock.uptimeMillis();
+                pwdEditText.dispatchKeyEvent(new KeyEvent(time, time, KeyEvent.ACTION_DOWN, keyCode, 0));
+                pwdEditText.dispatchKeyEvent(new KeyEvent(time, time, KeyEvent.ACTION_UP, keyCode, 0));
+            }
+        }
+        pwdEditText.postDelayed(() -> {
+            confirmPwdBtn.performClick();
+        }, 200);
+        L.d("[支付宝] tryInput dispatchKeyEvent done, confirm queued in 200ms");
         return true;
     }
 
