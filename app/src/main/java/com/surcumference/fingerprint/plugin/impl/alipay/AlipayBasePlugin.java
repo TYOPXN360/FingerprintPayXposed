@@ -625,6 +625,14 @@ public class AlipayBasePlugin implements IAppPlugin {
     }
 
     private void inputDigitPassword(Activity activity, String password) {
+        inputDigitPassword(activity, password, 0);
+    }
+
+    private void inputDigitPassword(Activity activity, String password, int retryCount) {
+        if (retryCount > 20) {
+            L.d("[支付宝] inputDigitPassword 等待数字键盘超时(6s), 放弃");
+            return;
+        }
         int versionCode = getVersionCode(activity);
         DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
         View ks[] = new View[] {
@@ -639,6 +647,20 @@ public class AlipayBasePlugin implements IAppPlugin {
                 findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("9"), "9"),
                 findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("0"), "0"),
         };
+        // 检查是否有至少一个数字键找到了
+        boolean anyKeyFound = false;
+        for (View k : ks) {
+            if (k != null) { anyKeyFound = true; break; }
+        }
+        if (!anyKeyFound) {
+            L.d("[支付宝] inputDigitPassword 键盘未就绪(retry=" + retryCount + "), 300ms后重试...");
+            int finalRetry = retryCount + 1;
+            activity.getWindow().getDecorView().postDelayed(() -> {
+                inputDigitPassword(activity, password, finalRetry);
+            }, 300);
+            return;
+        }
+
         char[] chars = password.toCharArray();
         for (char c : chars) {
             View v = null;
