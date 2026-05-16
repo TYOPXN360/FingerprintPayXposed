@@ -30,9 +30,11 @@ jobs:
           base64-encoded-secret: ${{ secrets.SIGNING_STORE_BASE64 }}
           filename: "app/keystore.jks"
       - name: Build with Gradle (minified)
-        run: rm -f app/keystore.jks && ./gradlew clean && ./gradlew ":app:assembleRelease" -Pxposed=true
+        run: rm -f app/keystore.jks && ./gradlew ":app:assembleRelease" -Pxposed=true --no-daemon
         env:
           BUILD_RELEASE_MINIFYENABLED: true
+          GRADLE_OPTS: -Xmx2048m
+          JAVA_TOOL_OPTIONS: -Xmx6g
       - name: Upload APK to Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
