@@ -61,6 +61,7 @@ public class AlipayBasePlugin implements IAppPlugin {
     private Activity mCurrentActivity;
 
     private boolean mIsViewTreeObserverFirst;
+    private boolean mFallbackScheduled;
     private int mAlipayVersionCode;
     private boolean mFingerprintIdentifyTemporaryBlocking = false;
 
@@ -190,6 +191,18 @@ public class AlipayBasePlugin implements IAppPlugin {
                                 }
                             }
                             return;
+                        }
+                        // 极速付款无键盘模式下，View可能不存在，延迟调用showFingerPrintDialog兜底
+                        if (mIsViewTreeObserverFirst && !mFallbackScheduled) {
+                            mFallbackScheduled = true;
+                            Task.onMain(3000, () -> {
+                                if (mIsViewTreeObserverFirst && mCurrentActivity == activity) {
+                                    L.d("[支付宝] View检测无匹配, 延迟兜底触发showFingerPrintDialog");
+                                    showFingerPrintDialog(activity);
+                                    mIsViewTreeObserverFirst = false;
+                                }
+                                mFallbackScheduled = false;
+                            });
                         }
                         return;
                     }
