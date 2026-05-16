@@ -11,7 +11,9 @@ import android.os.*;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -673,8 +675,19 @@ public class AlipayBasePlugin implements IAppPlugin {
                 L.d("[支付宝] inputDigit按键" + c + "未找到View");
                 continue;
             }
-            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName());
-            v.performClick();
+            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName() + " method=touch");
+            // 使用MotionEvent模拟手指点击，设置SOURCE_TOUCHSCREEN
+            long downTime = SystemClock.uptimeMillis();
+            float x = v.getWidth() / 2f;
+            float y = v.getHeight() / 2f;
+            MotionEvent downEvent = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0);
+            downEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+            v.dispatchTouchEvent(downEvent);
+            downEvent.recycle();
+            MotionEvent upEvent = MotionEvent.obtain(downTime + 50, downTime + 50, MotionEvent.ACTION_UP, x, y, 0);
+            upEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+            v.dispatchTouchEvent(upEvent);
+            upEvent.recycle();
             // 等待120ms模拟人类点击间隔
             if (idx < chars.length - 1) {
                 try { Thread.sleep(120); } catch (InterruptedException ignored) {}
