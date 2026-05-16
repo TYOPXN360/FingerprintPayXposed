@@ -31,6 +31,8 @@ jobs:
           filename: "app/keystore.jks"
       - name: Build with Gradle (no R8)
         run: rm -f app/keystore.jks && ./gradlew ":app:assembleRelease" -Pxposed=true
+        env:
+          BUILD_RELEASE_MINIFYENABLED: false
       - name: Upload APK to Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
