@@ -15,23 +15,10 @@ buildscript {
 
 allprojects {
     repositories {
-        def REPOSITORY_URL = 'https://maven.aliyun.com/nexus/content/groups/public/'
-        all { ArtifactRepository repo ->
-            if (repo instanceof MavenArtifactRepository) {
-                def url = repo.url.toString()
-                if (url.startsWith('https://repo1.maven.org/maven2') || url.startsWith('https://jcenter.bintray.com/')) {
-//                    project.logger.lifecycle "Repository ${repo.url} replaced by $REPOSITORY_URL."
-                    remove repo
-                }
-            }
-        }
-        maven {
-            url REPOSITORY_URL
-        }
-        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-
         google()
         mavenCentral()
+        maven { url 'https://maven.google.com' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
         maven { url "https://jitpack.io" }
     }
 }
