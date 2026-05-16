@@ -311,7 +311,6 @@ public class AlipayBasePlugin implements IAppPlugin {
                             DialogUtils.dismiss(mFingerPrintAlertDialog);
                         };
 
-                        L.d("[支付宝] 开始tryInputGenericPassword...");
                         // 优先使用inputDigitPassword点击数字键盘
                         L.d("[支付宝] 尝试inputDigitPassword...");
                         boolean digitOk = false;
@@ -328,9 +327,6 @@ public class AlipayBasePlugin implements IAppPlugin {
                             L.d("[支付宝] inputDigitPassword失败, 尝试tryInputGenericPassword兜底...");
                             boolean tryInputOk = tryInputGenericPassword(activity, password);
                             L.d("[支付宝] tryInputGenericPassword结果=" + tryInputOk);
-                        }
-                                return;
-                            }
                         }
                         onCompleteRunnable.run();
                     });
