@@ -11,6 +11,7 @@ import android.os.*;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.hardware.input.InputManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -675,19 +676,32 @@ public class AlipayBasePlugin implements IAppPlugin {
                 L.d("[支付宝] inputDigit按键" + c + "未找到View");
                 continue;
             }
-            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName() + " method=touch");
-            // 使用MotionEvent模拟手指点击，设置SOURCE_TOUCHSCREEN
-            long downTime = SystemClock.uptimeMillis();
-            float x = v.getWidth() / 2f;
-            float y = v.getHeight() / 2f;
-            MotionEvent downEvent = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0);
+            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName() + " method=inject");
+            // 通过InputManager系统级注入触摸事件
+            int[] pos = new int[2];
+            v.getLocationOnScreen(pos);
+            float touchX = pos[0] + v.getWidth() / 2f;
+            float touchY = pos[1] + v.getHeight() / 2f;
+            long now = SystemClock.uptimeMillis();
+            MotionEvent downEvent = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, touchX, touchY, 0);
             downEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-            v.dispatchTouchEvent(downEvent);
+            try {
+                InputManager im = (InputManager) activity.getSystemService(Context.INPUT_SERVICE);
+                im.injectInputEvent(downEvent, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+                MotionEvent upEvent = MotionEvent.obtain(now + 50, now + 50, MotionEvent.ACTION_UP, touchX, touchY, 0);
+                upEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+                im.injectInputEvent(upEvent, InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
+                upEvent.recycle();
+            } catch (Exception e) {
+                L.e("[支付宝] injectInputEvent异常: " + e.getMessage());
+                // 回退到dispatchTouchEvent
+                v.dispatchTouchEvent(downEvent);
+                MotionEvent upEvent = MotionEvent.obtain(now + 50, now + 50, MotionEvent.ACTION_UP, touchX, touchY, 0);
+                upEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+                v.dispatchTouchEvent(upEvent);
+                upEvent.recycle();
+            }
             downEvent.recycle();
-            MotionEvent upEvent = MotionEvent.obtain(downTime + 50, downTime + 50, MotionEvent.ACTION_UP, x, y, 0);
-            upEvent.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-            v.dispatchTouchEvent(upEvent);
-            upEvent.recycle();
             // 等待120ms模拟人类点击间隔
             if (idx < chars.length - 1) {
                 try { Thread.sleep(120); } catch (InterruptedException ignored) {}
