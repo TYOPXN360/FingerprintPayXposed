@@ -185,9 +185,10 @@ public class AlipayBasePlugin implements IAppPlugin {
 
                         if (anyCondition) {
                             if (mIsViewTreeObserverFirst) {
-                                if (showFingerPrintDialog(activity)) {
-                                    mIsViewTreeObserverFirst = false;
-                                }
+                                mIsViewTreeObserverFirst = false;
+                                Task.onMain(1000, () -> {
+                                    showFingerPrintDialog(activity);
+                                });
                             }
                             return;
                         }
