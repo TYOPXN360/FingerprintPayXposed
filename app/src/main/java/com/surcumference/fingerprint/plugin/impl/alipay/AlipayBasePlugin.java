@@ -155,27 +155,38 @@ public class AlipayBasePlugin implements IAppPlugin {
                 int versionCode = getVersionCode(activity);
                 View rootView = activity.getWindow().getDecorView();
                 rootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
-                    if (mCurrentActivity == null) {
-                        return;
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                        if (activity.isDestroyed()) {
-                            return;
-                        }
-                    }
-                    if (mCurrentActivity != activity) {
+                    if (mCurrentActivity == null || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed()) || mCurrentActivity != activity) {
                         return;
                     }
                     if (versionCode >= 661 /** 10.3.10.8310 */) {
-                        boolean isRechargePay = (ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password"))
-                                && ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "keyboard_container")));
+                        View foundInputEt = ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password");
+                        View foundKeyboard = ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "keyboard_container");
+                        boolean isRechargePay = ViewUtils.isShown(foundInputEt) && ViewUtils.isShown(foundKeyboard);
+                        L.v("[支付宝] View检测: input_et_password=" + foundInputEt + " shown=" + ViewUtils.isShown(foundInputEt)
+                            + " keyboard_container=" + foundKeyboard + " shown=" + ViewUtils.isShown(foundKeyboard));
 
-                        boolean isNormalPay = ViewUtils.isShown(ViewUtils.findViewByText(rootView,"请输入长密码", "請輸入長密碼", "Payment Password"))
-                                || ViewUtils.isShown(ViewUtils.findViewByText(rootView,"密码共6位，已输入0位"));
+                        View foundLongPwd = ViewUtils.findViewByText(rootView, "请输入长密码", "請輸入長密碼", "Payment Password");
+                        View found6digit = ViewUtils.findViewByText(rootView, "密码共6位，已输入0位");
+                        boolean isNormalPay = ViewUtils.isShown(foundLongPwd) || ViewUtils.isShown(found6digit);
+                        L.v("[支付宝] View检测: 长密码=" + foundLongPwd + " 6位=" + found6digit);
 
-                        boolean isKeyAreaPay = ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "ll_key_area"));
+                        View foundKeyArea = ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "ll_key_area");
+                        boolean isKeyAreaPay = ViewUtils.isShown(foundKeyArea);
+                        L.v("[支付宝] View检测: ll_key_area=" + foundKeyArea + " shown=" + ViewUtils.isShown(foundKeyArea));
 
-                        if (isRechargePay || isNormalPay || isKeyAreaPay) {
+                        // 极速付款模式: 尝试检测"请输入支付密码"文本
+                        View foundPayPwdText = ViewUtils.findViewByText(rootView, "请输入支付密码", "請輸入支付密碼", "Payment password");
+                        boolean hasPayPwdText = ViewUtils.isShown(foundPayPwdText);
+                        L.d("[支付宝] 极速模式检测: 请输入支付密码文本=" + foundPayPwdText + " shown=" + hasPayPwdText);
+
+                        boolean anyCondition = isRechargePay || isNormalPay || isKeyAreaPay || hasPayPwdText;
+                        L.d("[支付宝] View检测结果汇总: isRechargePay=" + isRechargePay
+                            + " isNormalPay=" + isNormalPay
+                            + " isKeyAreaPay=" + isKeyAreaPay
+                            + " hasPayPwdText=" + hasPayPwdText
+                            + " -> " + (anyCondition ? "满足条件，调用showFingerPrintDialog" : "不满足，跳过"));
+
+                        if (anyCondition) {
                             if (mIsViewTreeObserverFirst) {
                                 if (showFingerPrintDialog(activity)) {
                                     mIsViewTreeObserverFirst = false;
