@@ -687,7 +687,23 @@ public class AlipayBasePlugin implements IAppPlugin {
             }
         }
         if (v != null) {
-            L.d("[支付宝] 数字键[" + digitText + "]通过ID找到: " + v.getClass().getName() + " " + v.getId());
+            // 读取按钮实际显示的文本（AUSecureTextView可能被随机打乱）
+            String actualText = null;
+            try {
+                if (v instanceof android.widget.TextView) {
+                    actualText = ((android.widget.TextView) v).getText().toString().trim();
+                }
+            } catch (Exception ignored) {}
+            if (actualText == null || actualText.isEmpty()) {
+                try {
+                    java.lang.reflect.Field f = v.getClass().getDeclaredField("mText");
+                    f.setAccessible(true);
+                    Object t = f.get(v);
+                    if (t != null) actualText = t.toString().trim();
+                } catch (Exception ignored) {}
+            }
+            L.d("[支付宝] 数字键[" + digitText + "]通过ID找到: " + v.getClass().getName()
+                + " 实际文本=[" + (actualText != null ? actualText : "null") + "] shown=" + v.isShown());
             return v;
         }
         // ID查找失败，按文本查找
