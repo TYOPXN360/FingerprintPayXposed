@@ -646,16 +646,16 @@ public class AlipayBasePlugin implements IAppPlugin {
         int versionCode = getVersionCode(activity);
         DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
         View ks[] = new View[] {
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1, "1"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key2, "2"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key3, "3"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key4, "4"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key5, "5"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key6, "6"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key7, "7"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key8, "8"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key9, "9"),
-                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key0, "0"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("1"), "1"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("2"), "2"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("3"), "3"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("4"), "4"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("5"), "5"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("6"), "6"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("7"), "7"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("8"), "8"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("9"), "9"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.keys.get("0"), "0"),
         };
         char[] chars = password.toCharArray();
         for (char c : chars) {
@@ -673,9 +673,15 @@ public class AlipayBasePlugin implements IAppPlugin {
         }
     }
 
-    private View findDigitKeyView(Activity activity, String pkg, String keyId, String digitText) {
-        // 先按ID查找
-        View v = ViewUtils.findViewByName(activity, pkg, keyId);
+    private View findDigitKeyView(Activity activity, String pkg, String[] keyIds, String digitText) {
+        // 先按ID查找（尝试每个可能的ID）
+        View v = null;
+        if (keyIds != null) {
+            for (String keyId : keyIds) {
+                v = ViewUtils.findViewByName(activity, pkg, keyId);
+                if (v != null) break;
+            }
+        }
         if (v != null) {
             L.d("[支付宝] 数字键[" + digitText + "]通过ID找到: " + v.getClass().getName() + " " + v.getId());
             return v;
