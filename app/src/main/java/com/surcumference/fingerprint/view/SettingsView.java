@@ -289,6 +289,8 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             Toaster.show("未设置支付密码");
             return;
         }
+        // 扫描当前界面上所有AUSecureTextView
+        scanDigitKeypad(activity);
         L.d("[测试/极速] 极速模式解密: 密文长度=" + encrypted.length());
         new BiometricPromptHandler(activity).decryptPasscode(encrypted, new BiometricPromptHandler.IdentifyListener() {
             @Override public void onDecryptionSuccess(BiometricPromptHandler h, @NonNull String decryptedContent) {
@@ -302,6 +304,48 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 Toaster.show(msg);
             }
         });
+    }
+
+    private void scanDigitKeypad(Activity activity) {
+        try {
+            ViewGroup root = activity.getWindow().getDecorView().findViewById(android.R.id.content);
+            if (root == null) root = (ViewGroup) activity.getWindow().getDecorView();
+            List<View> allViews = new ArrayList<>();
+            ViewUtils.getChildViews(root, "", allViews);
+            L.d("[测试] 扫描数字键盘 Views:");
+            int keyCount = 0;
+            for (View v : allViews) {
+                if (v.getClass().getName().contains("AUSecureTextView") || v.getClass().getName().contains("Keypad")) {
+                    CharSequence txt = "";
+                    if (v instanceof android.widget.TextView) {
+                        txt = ((android.widget.TextView) v).getText();
+                    }
+                    int[] pos = new int[2];
+                    v.getLocationOnScreen(pos);
+                    L.d("[测试]   类=" + v.getClass().getName() + " 文本=[" + txt + "] ID=" + v.getId()
+                        + " pos=(" + pos[0] + "," + pos[1] + ") size=" + v.getWidth() + "x" + v.getHeight()
+                        + " shown=" + v.isShown() + " parent=" + (v.getParent() != null ? v.getParent().getClass().getName() : "null"));
+                    keyCount++;
+                }
+            }
+            L.d("[测试] 共找到 " + keyCount + " 个键盘View");
+            if (keyCount == 0) {
+                // 输出所有可见Button/TextView
+                for (View v : allViews) {
+                    if (v.isShown() && (v instanceof android.widget.Button || v instanceof android.widget.TextView)) {
+                        CharSequence txt = "";
+                        if (v instanceof android.widget.TextView) txt = ((android.widget.TextView) v).getText();
+                        if (txt != null && txt.length() == 1 && txt.charAt(0) >= '0' && txt.charAt(0) <= '9') {
+                            int[] pos = new int[2];
+                            v.getLocationOnScreen(pos);
+                            L.d("[测试]   备选: " + v.getClass().getName() + " 文本=[" + txt + "] pos=(" + pos[0] + "," + pos[1] + ")");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            L.e("[测试] 扫描键盘异常: " + e.getMessage());
+        }
     }
 
     private boolean checkPasswordAndNotify(Context context) {
