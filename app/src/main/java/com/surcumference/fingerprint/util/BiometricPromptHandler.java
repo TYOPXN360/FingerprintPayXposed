@@ -138,18 +138,19 @@ public class BiometricPromptHandler {
                 }
             };
 
-            BiometricPrompt biometricPrompt = new BiometricPrompt(activity, executor, authCallback);
+            BiometricPrompt biometricPrompt = new BiometricPrompt.Builder(activity)
+                    .setTitle(isEncryptMode ? "设置指纹支付" : "指纹支付")
+                    .setSubtitle(isEncryptMode ? "验证指纹以加密支付密码" : "验证指纹以完成支付")
+                    .setNegativeButton("取消", executor, (dialog, which) -> {
+                        L.d("[Biometric] 用户取消");
+                        listener.onFailed(BiometricPromptHandler.this, -1, "User cancelled");
+                    })
+                    .build();
 
             BiometricPrompt.CryptoObject cryptoObject = new BiometricPrompt.CryptoObject(cipher);
 
-            BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                    .setTitle(isEncryptMode ? "设置指纹支付" : "指纹支付")
-                    .setSubtitle(isEncryptMode ? "验证指纹以加密支付密码" : "验证指纹以完成支付")
-                    .setNegativeButtonText("取消")
-                    .build();
-
             listener.onInited(this);
-            biometricPrompt.authenticate(promptInfo, cryptoObject);
+            biometricPrompt.authenticate(cryptoObject, null, executor, authCallback);
 
         } catch (Exception e) {
             L.e(e, "[Biometric] startBiometric 异常");
