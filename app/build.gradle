@@ -19,6 +19,7 @@ android {
             shrinkResources System.getenv("BUILD_RELEASE_MINIFYENABLED")?.toBoolean() ?: true
             zipAlignEnabled true
             proguardFiles 'proguard-rules.pro', 'r8-rules.pro'
+            javaMaxHeapSize "4g"
         }
     }
 
