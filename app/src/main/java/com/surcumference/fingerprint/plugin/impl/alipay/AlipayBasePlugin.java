@@ -135,14 +135,15 @@ public class AlipayBasePlugin implements IAppPlugin {
     public void onActivityResumed(Activity activity) {
         try {
             final String activityClzName = activity.getClass().getName();
-            if (BuildConfig.DEBUG) {
-                L.d("activity", activity, "clz", activityClzName);
-            }
+            L.d("[支付宝] onActivityResumed: " + activityClzName
+                + " hashCode=" + System.identityHashCode(activity)
+                + " isFinishing=" + activity.isFinishing());
             mCurrentActivity = activity;
             if (activityClzName.contains(".PayPwdDialogActivity")
+                    || activityClzName.contains(".PayPwdFullActivity")
                     || activityClzName.contains(".MspContainerActivity")
                     || activityClzName.contains(".FlyBirdWindowActivity")) {
-                L.d("found");
+                L.i("[支付宝] *** 检测到密码弹窗 Activity: " + activityClzName + " ***");
                 final Config config = Config.from(activity);
                 if (!config.isOn()) {
                     return;
@@ -263,26 +264,36 @@ public class AlipayBasePlugin implements IAppPlugin {
     public boolean showFingerPrintDialog(final Activity activity) {
         final Context context = activity;
         final Config config = Config.from(context);
+        L.i("[支付宝] showFingerPrintDialog 被调用, Activity=" + activity.getClass().getName()
+            + " 配置已开启=" + config.isOn()
+            + " 临时屏蔽=" + mFingerprintIdentifyTemporaryBlocking);
         try {
-            if (getVersionCode(activity) >= 224) {
-                if (activity.getClass().getName().contains(".MspContainerActivity")) {
+            int versionCode = getVersionCode(activity);
+            L.d("[支付宝] 版本号=" + versionCode);
+            if (versionCode >= 224) {
+                if (activity.getClass().getName().contains(".MspContainerActivity")
+                        || activity.getClass().getName().contains(".PayPwdFullActivity")) {
                     View payTextView = ViewUtils.findViewByText(activity.getWindow().getDecorView(),
                             "支付宝支付密码", "支付寶支付密碼", "Alipay Payment Password",
                             "请输入支付密码", "請輸入支付密碼", "Payment password",
                             "请输入长密码", "請輸入長密碼", "密码共6位，已输入0位");
-                    L.d("payTextView", payTextView);
+                    L.d("[支付宝] payTextView 查找结果=" + payTextView);
                     if (payTextView == null) {
-                        return false;
+                        L.d("[支付宝] payTextView 为空, 可能不是MspContainerActivity, 继续");
                     }
+                } else {
+                    L.d("[支付宝] 不是MspContainerActivity/PayPwdFullActivity, 跳过文本检测");
                 }
             }
 
             hidePreviousPayDialog();
             String passwordEncrypted = config.getPasswordEncrypted();
             if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
+                L.w("[支付宝] 密码未设置, 弹出提示");
                 Toaster.showLong(Lang.getString(R.id.toast_password_not_set_alipay));
                 return true;
             }
+            L.d("[支付宝] 密码已设置, 密码长度=" + passwordEncrypted.length());
 
             mPwdActivityReShowDelayTimeMsec = 0;
             clickDigitPasswordWidget(activity);
@@ -395,7 +406,9 @@ public class AlipayBasePlugin implements IAppPlugin {
 
     private void reEnteredPayDialogSolution(Activity activity) {
         int versionCode = getVersionCode(activity);
+        L.d("[支付宝] reEnteredPayDialogSolution: versionCode=" + versionCode);
         if (versionCode < 1261 /** 10.5.96.8000 */) {
+            L.d("[支付宝] 版本低于1261, 跳过 reEnteredPayDialogSolution");
             return;
         }
         ViewGroup rootView = (ViewGroup)activity.getWindow().getDecorView();
@@ -692,13 +705,28 @@ public class AlipayBasePlugin implements IAppPlugin {
     }
 
     private EditText findPasswordEditText(Activity activity) {
+        // 尝试标准密码输入框
         View pwdEditText = ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password");
-        if (pwdEditText instanceof EditText) {
-            if (!pwdEditText.isShown()) {
-                return null;
-            }
+        L.v("[支付宝] findPasswordEditText: input_et_password -> " + pwdEditText);
+        if (pwdEditText instanceof EditText && pwdEditText.isShown()) {
+            L.d("[支付宝] 找到密码输入框: input_et_password");
             return (EditText) pwdEditText;
         }
+        // 极速付款模式: 尝试新的6位密码输入视图ID
+        pwdEditText = ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "ap_six_number_pwd_input");
+        L.v("[支付宝] findPasswordEditText: ap_six_number_pwd_input(verifyidentity) -> " + pwdEditText);
+        if (pwdEditText instanceof EditText && pwdEditText.isShown()) {
+            L.d("[支付宝] 找到密码输入框: ap_six_number_pwd_input(verifyidentity)");
+            return (EditText) pwdEditText;
+        }
+        // 尝试antui包名下的极速付款模式密码输入框
+        pwdEditText = ViewUtils.findViewByName(activity, "com.alipay.mobile.antui", "ap_six_number_pwd_input");
+        L.v("[支付宝] findPasswordEditText: ap_six_number_pwd_input(antui) -> " + pwdEditText);
+        if (pwdEditText instanceof EditText && pwdEditText.isShown()) {
+            L.d("[支付宝] 找到密码输入框: ap_six_number_pwd_input(antui)");
+            return (EditText) pwdEditText;
+        }
+        L.d("[支付宝] 未找到标准密码输入框, 回退到遍历搜索");
         // long password
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
         List<View> outList = new ArrayList<>();
