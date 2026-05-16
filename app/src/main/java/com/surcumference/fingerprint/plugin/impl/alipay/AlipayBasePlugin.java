@@ -662,11 +662,12 @@ public class AlipayBasePlugin implements IAppPlugin {
         }
 
         char[] chars = password.toCharArray();
-        for (char c : chars) {
+        for (int idx = 0; idx < chars.length; idx++) {
+            char c = chars[idx];
             View v = null;
-            int idx = c - '0';
-            if (idx >= 0 && idx <= 9) {
-                v = ks[idx];
+            int digit = c - '0';
+            if (digit >= 0 && digit <= 9) {
+                v = ks[digit];
             }
             if (v == null) {
                 L.d("[支付宝] inputDigit按键" + c + "未找到View");
@@ -675,11 +676,8 @@ public class AlipayBasePlugin implements IAppPlugin {
             L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName());
             v.performClick();
             // 等待120ms模拟人类点击间隔
-            if (i < chars.length - 1) {
-                long waitStart = SystemClock.uptimeMillis();
-                while (SystemClock.uptimeMillis() - waitStart < 120) {
-                    try { Thread.sleep(10); } catch (InterruptedException ignored) {}
-                }
+            if (idx < chars.length - 1) {
+                try { Thread.sleep(120); } catch (InterruptedException ignored) {}
             }
         }
     }
