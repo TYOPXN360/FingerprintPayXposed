@@ -672,8 +672,8 @@ public class AlipayBasePlugin implements IAppPlugin {
                 L.d("[支付宝] inputDigit按键" + c + "未找到View");
                 continue;
             }
-            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName());
-            ViewUtils.performActionClick(v);
+            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName() + " method=performClick");
+            v.performClick();
         }
     }
 
