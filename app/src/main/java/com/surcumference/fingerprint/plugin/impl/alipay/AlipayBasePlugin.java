@@ -696,10 +696,7 @@ public class AlipayBasePlugin implements IAppPlugin {
             MotionEvent upEvent = MotionEvent.obtain(downTime + 30, downTime + 30, MotionEvent.ACTION_UP, touchX, touchY, 0);
             v.dispatchTouchEvent(upEvent);
             upEvent.recycle();
-            // 等待120ms模拟人类点击间隔
-            if (idx < chars.length - 1) {
-                try { Thread.sleep(120); } catch (InterruptedException ignored) {}
-            }
+
         }
     }
 
