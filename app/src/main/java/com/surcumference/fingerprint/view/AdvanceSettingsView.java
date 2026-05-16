@@ -102,7 +102,7 @@ public class AdvanceSettingsView extends DialogFrameLayout implements AdapterVie
             data.selectionState = !data.selectionState;
             config.setShowFingerprintIcon(data.selectionState);
             mListAdapter.notifyDataSetChanged();
-
+        }
     }
 
     private PreferenceAdapter.Data findDataItem(String title) {
