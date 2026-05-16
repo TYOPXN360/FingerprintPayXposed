@@ -303,33 +303,42 @@ public class AlipayBasePlugin implements IAppPlugin {
                 .withOnShowListener((target) -> {
                     AlertDialog dialog = target.getDialog();
                     initFingerPrintLock(context, dialog, passwordEncrypted, (password) -> {
+                        L.d("[支付宝] 认证成功回调, password前3位=" + password.substring(0, Math.min(password.length(), 3)) + "***");
                         BlackListUtils.applyIfNeeded(context);
                         Runnable onCompleteRunnable = () -> {
                             mPwdActivityReShowDelayTimeMsec = 1000;
                             DialogUtils.dismiss(mFingerPrintAlertDialog);
                         };
 
-                        if (!tryInputGenericPassword(activity, password)) {
+                        L.d("[支付宝] 开始tryInputGenericPassword...");
+                        boolean tryInputOk = tryInputGenericPassword(activity, password);
+                        L.d("[支付宝] tryInputGenericPassword结果=" + tryInputOk);
+                        if (!tryInputOk) {
+                            L.d("[支付宝] 尝试inputDigitPassword...");
                             boolean tryAgain = false;
                             try {
                                 inputDigitPassword(activity, password);
+                                L.d("[支付宝] inputDigitPassword完成");
                             } catch (NullPointerException e) {
                                 tryAgain = true;
+                                L.d("[支付宝] inputDigitPassword捕获NPE: " + e.getMessage());
                             } catch (Exception e) {
                                 Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
-                                L.e(e);
+                                L.e(e, "[支付宝] inputDigitPassword异常");
                             }
                             if (tryAgain) {
+                                L.d("[支付宝] inputDigitPassword重试(1s后)...");
                                 clickDigitPasswordWidget(activity);
                                 Task.onMain(1000, ()-> {
                                     try {
                                         inputDigitPassword(activity, password);
+                                        L.d("[支付宝] inputDigitPassword重试成功");
                                     } catch (NullPointerException e) {
                                         Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
-                                        L.d("inputDigitPassword NPE", e);
+                                        L.e(e, "[支付宝] inputDigitPassword重试NPE");
                                     } catch (Exception e) {
                                         Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
-                                        L.e(e);
+                                        L.e(e, "[支付宝] inputDigitPassword重试异常");
                                     }
                                     onCompleteRunnable.run();
                                 });
@@ -691,19 +700,25 @@ public class AlipayBasePlugin implements IAppPlugin {
     private boolean tryInputGenericPassword(Activity activity, String password) {
 
         EditText pwdEditText = findPasswordEditText(activity);
-        L.d("pwdEditText", pwdEditText);
+        L.d("[支付宝] tryInput findPwdEditText=" + pwdEditText);
         if (pwdEditText == null) {
+            L.d("[支付宝] tryInput fail: pwdEditText is null");
             return false;
         }
         View confirmPwdBtn = findConfirmPasswordBtn(activity);
-        L.d("confirmPwdBtn", confirmPwdBtn);
+        L.d("[支付宝] tryInput findConfirmBtn=" + confirmPwdBtn);
         if (confirmPwdBtn == null) {
+            L.d("[支付宝] tryInput fail: confirmBtn is null");
             return false;
         }
+        L.d("[支付宝] tryInput click focus pwd=" + password);
         pwdEditText.performClick();
         pwdEditText.requestFocus();
+        L.d("[支付宝] tryInput setText...");
         pwdEditText.setText(password);
+        L.d("[支付宝] tryInput click confirm...");
         confirmPwdBtn.performClick();
+        L.d("[支付宝] tryInput success!");
         return true;
     }
 
