@@ -5,7 +5,6 @@ import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_ALIPAY;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import androidx.fragment.app.FragmentActivity;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.*;
@@ -235,14 +234,14 @@ public class AlipayBasePlugin implements IAppPlugin {
 
     public void initFingerPrintLock(final Context context ,AlertDialog dialog, String passwordEncrypted,
                                     OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
-        if (!(context instanceof FragmentActivity)) {
-            L.e("[支付宝] initFingerPrintLock: Context不是FragmentActivity");
+        if (!(context instanceof Activity)) {
+            L.e("[支付宝] initFingerPrintLock: Context不是Activity");
             return;
         }
         // Hide the custom dialog since BiometricPrompt shows system UI
         ViewUtils.setAlpha(dialog, 0);
         ViewUtils.setDimAmount(dialog, 0);
-        mFingerprintIdentify = new BiometricPromptHandler((FragmentActivity) context);
+        mFingerprintIdentify = new BiometricPromptHandler((Activity) context);
         mFingerprintIdentify.decryptPasscode(passwordEncrypted, new BiometricPromptHandler.IdentifyListener() {
 
                     @Override

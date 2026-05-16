@@ -1,5 +1,6 @@
 package com.surcumference.fingerprint.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
@@ -10,8 +11,6 @@ import androidx.annotation.Nullable;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
-
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.log.L;
 
@@ -43,13 +42,13 @@ public class BiometricPromptHandler {
     private static final String ANDROID_KEYSTORE = "AndroidKeyStore";
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
 
-    private final FragmentActivity activity;
+    private final Activity activity;
     private final Config config;
     private String cipherContent;
     private boolean isEncryptMode;
     private boolean cancelled;
 
-    public BiometricPromptHandler(@NonNull FragmentActivity activity) {
+    public BiometricPromptHandler(@NonNull Activity activity) {
         this.activity = activity;
         this.config = Config.from(activity);
     }

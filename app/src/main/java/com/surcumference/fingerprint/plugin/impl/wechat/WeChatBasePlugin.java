@@ -18,8 +18,6 @@ import android.util.TypedValue;
 import android.view.*;
 import android.widget.*;
 
-import androidx.fragment.app.FragmentActivity;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -95,11 +93,11 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                                                     OnFingerprintVerificationOKListener onSuccessUnlockCallback,
                                                     final Runnable onFailureUnlockCallback) {
         cancelFingerprintIdentify();
-        if (!(context instanceof FragmentActivity)) {
-            L.e("[微信] initFingerPrintLock: Context不是FragmentActivity");
+        if (!(context instanceof Activity)) {
+            L.e("[微信] initFingerPrintLock: Context不是Activity");
             return;
         }
-        mFingerprintIdentify = new BiometricPromptHandler((FragmentActivity) context);
+        mFingerprintIdentify = new BiometricPromptHandler((Activity) context);
         mFingerprintIdentify.decryptPasscode(passwordEncrypted, new BiometricPromptHandler.IdentifyListener() {
 
                     @Override
