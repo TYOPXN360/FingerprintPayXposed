@@ -95,8 +95,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             case Constant.PACKAGE_NAME_ALIPAY:
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_alipay), true, Config.from(context).isOn()));
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_password), Lang.getString(R.id.settings_sub_title_password_alipay)));
-                mSettingsDataList.add(new PreferenceAdapter.Data("[测试] 指纹解密(普通模式)", "验证指纹后Toast显示密码+检测键盘"));
-                mSettingsDataList.add(new PreferenceAdapter.Data("[测试] 指纹解密(极速模式)", "验证指纹后Toast显示密码(无键盘)"));
+                // 测试功能已移除
                 break;
             case Constant.PACKAGE_NAME_UNIONPAY:
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_unionpay), true, Config.from(context).isOn()));
@@ -185,11 +184,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         } else if (Lang.getString(R.id.settings_title_webside).equals(data.title)) {
             com.surcumference.fingerprint.util.UrlUtils.openUrl(context, Constant.PROJECT_URL);
             Task.onMain(1000, () -> Toaster.showLong(Lang.getString(R.id.toast_give_me_star)));
-        } else if ("[测试] 指纹解密(普通模式)".equals(data.title)) {
-            testBiometricDecrypt(context);
-        } else if ("[测试] 指纹解密(极速模式)".equals(data.title)) {
-            testBiometricDecryptNoKeyboard(context);
-        }
+
     }
 
     private void showUpdatePasswordViewDialog() {
@@ -248,104 +243,6 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 Toaster.showShort(Lang.getString(R.id.toast_fingerprint_operation_cancel));
             }
         });
-    }
-
-    private void testBiometricDecrypt(Context context) {
-        if (!(context instanceof Activity)) {
-            Toaster.show("无法获取Activity上下文");
-            return;
-        }
-        Activity activity = (Activity) context;
-        Config config = Config.from(context);
-        String encrypted = config.getPasswordEncrypted();
-        if (encrypted == null || encrypted.isEmpty()) {
-            Toaster.show("未设置支付密码");
-            return;
-        }
-        L.d("[测试] 普通模式解密: 密文长度=" + encrypted.length());
-        new BiometricPromptHandler(activity).decryptPasscode(encrypted, new BiometricPromptHandler.IdentifyListener() {
-            @Override public void onDecryptionSuccess(BiometricPromptHandler h, @NonNull String decryptedContent) {
-                String msg = "解密成功! 密码=" + decryptedContent;
-                L.d("[测试] " + msg);
-                Toaster.show(msg);
-            }
-            @Override public void onFailed(BiometricPromptHandler h, int errorCode, @Nullable String errString) {
-                String msg = "解密失败: code=" + errorCode + " " + (errString != null ? errString : "");
-                L.e("[测试] " + msg);
-                Toaster.show(msg);
-            }
-        });
-    }
-
-    private void testBiometricDecryptNoKeyboard(Context context) {
-        if (!(context instanceof Activity)) {
-            Toaster.show("无法获取Activity上下文");
-            return;
-        }
-        Activity activity = (Activity) context;
-        Config config = Config.from(context);
-        String encrypted = config.getPasswordEncrypted();
-        if (encrypted == null || encrypted.isEmpty()) {
-            Toaster.show("未设置支付密码");
-            return;
-        }
-        // 扫描当前界面上所有AUSecureTextView
-        scanDigitKeypad(activity);
-        L.d("[测试/极速] 极速模式解密: 密文长度=" + encrypted.length());
-        new BiometricPromptHandler(activity).decryptPasscode(encrypted, new BiometricPromptHandler.IdentifyListener() {
-            @Override public void onDecryptionSuccess(BiometricPromptHandler h, @NonNull String decryptedContent) {
-                String msg = "极速模式解密成功! 密码=" + decryptedContent;
-                L.d("[测试/极速] " + msg);
-                Toaster.show(msg);
-            }
-            @Override public void onFailed(BiometricPromptHandler h, int errorCode, @Nullable String errString) {
-                String msg = "极速模式解密失败: code=" + errorCode + " " + (errString != null ? errString : "");
-                L.e("[测试/极速] " + msg);
-                Toaster.show(msg);
-            }
-        });
-    }
-
-    private void scanDigitKeypad(Activity activity) {
-        try {
-            ViewGroup root = activity.getWindow().getDecorView().findViewById(android.R.id.content);
-            if (root == null) root = (ViewGroup) activity.getWindow().getDecorView();
-            List<View> allViews = new ArrayList<>();
-            ViewUtils.getChildViews(root, "", allViews);
-            L.d("[测试] 扫描数字键盘 Views:");
-            int keyCount = 0;
-            for (View v : allViews) {
-                if (v.getClass().getName().contains("AUSecureTextView") || v.getClass().getName().contains("Keypad")) {
-                    CharSequence txt = "";
-                    if (v instanceof android.widget.TextView) {
-                        txt = ((android.widget.TextView) v).getText();
-                    }
-                    int[] pos = new int[2];
-                    v.getLocationOnScreen(pos);
-                    L.d("[测试]   类=" + v.getClass().getName() + " 文本=[" + txt + "] ID=" + v.getId()
-                        + " pos=(" + pos[0] + "," + pos[1] + ") size=" + v.getWidth() + "x" + v.getHeight()
-                        + " shown=" + v.isShown() + " parent=" + (v.getParent() != null ? v.getParent().getClass().getName() : "null"));
-                    keyCount++;
-                }
-            }
-            L.d("[测试] 共找到 " + keyCount + " 个键盘View");
-            if (keyCount == 0) {
-                // 输出所有可见Button/TextView
-                for (View v : allViews) {
-                    if (v.isShown() && (v instanceof android.widget.Button || v instanceof android.widget.TextView)) {
-                        CharSequence txt = "";
-                        if (v instanceof android.widget.TextView) txt = ((android.widget.TextView) v).getText();
-                        if (txt != null && txt.length() == 1 && txt.charAt(0) >= '0' && txt.charAt(0) <= '9') {
-                            int[] pos = new int[2];
-                            v.getLocationOnScreen(pos);
-                            L.d("[测试]   备选: " + v.getClass().getName() + " 文本=[" + txt + "] pos=(" + pos[0] + "," + pos[1] + ")");
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            L.e("[测试] 扫描键盘异常: " + e.getMessage());
-        }
     }
 
     private boolean checkPasswordAndNotify(Context context) {

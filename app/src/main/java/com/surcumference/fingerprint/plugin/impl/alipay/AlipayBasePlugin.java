@@ -298,7 +298,7 @@ public class AlipayBasePlugin implements IAppPlugin {
                 Toaster.showLong(Lang.getString(R.id.toast_password_not_set_alipay));
                 return true;
             }
-            L.d("[支付宝] 密码已设置, 密码长度=" + passwordEncrypted.length());
+            L.d("[支付宝] 密码已设置");
 
             mPwdActivityReShowDelayTimeMsec = 0;
             clickDigitPasswordWidget(activity);
@@ -307,7 +307,7 @@ public class AlipayBasePlugin implements IAppPlugin {
                 .withOnShowListener((target) -> {
                     AlertDialog dialog = target.getDialog();
                     initFingerPrintLock(context, dialog, passwordEncrypted, (password) -> {
-                        L.d("[支付宝] 认证成功回调, 密码长度=" + password.length());
+                        L.d("[支付宝] 认证成功回调");
                         BlackListUtils.applyIfNeeded(context);
                         Runnable onCompleteRunnable = () -> {
                             mPwdActivityReShowDelayTimeMsec = 1000;
@@ -678,13 +678,13 @@ public class AlipayBasePlugin implements IAppPlugin {
                 L.d("[支付宝] inputDigit按键" + c + "未找到View");
                 continue;
             }
-            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName());
+            L.d("[支付宝] inputDigit点击 view=" + v.getClass().getName());
             // 记录按键信息到日志
             int[] pos = new int[2];
             v.getLocationOnScreen(pos);
             ViewParent parent = v.getParent();
             String parentInfo = parent != null ? parent.getClass().getName() : "null";
-            L.d("[支付宝] 按键" + c + " 屏幕坐标=(" + pos[0] + "," + pos[1] + ") 大小=" + v.getWidth() + "x" + v.getHeight()
+            L.d("[支付宝] 按键屏幕坐标=(" + pos[0] + "," + pos[1] + ") 大小=" + v.getWidth() + "x" + v.getHeight()
                 + " 父容器=" + parentInfo + " onClickListener=" + (ViewUtils.getOnClickListener(v) != null ? "Y" : "N"));
             // 直接分发真实坐标触摸事件
             float touchX = pos[0] + v.getWidth() / 2f;
@@ -726,7 +726,7 @@ public class AlipayBasePlugin implements IAppPlugin {
                 } catch (Exception ignored) {}
             }
             L.d("[支付宝] 数字键[" + digitText + "]通过ID找到: " + v.getClass().getName()
-                + " 实际文本=[" + (actualText != null ? actualText : "null") + "] shown=" + v.isShown());
+                + " shown=" + v.isShown());
             return v;
         }
         // ID查找失败，按文本查找
@@ -763,7 +763,7 @@ public class AlipayBasePlugin implements IAppPlugin {
             L.d("[支付宝] tryInput fail: confirmBtn is null");
             return false;
         }
-        L.d("[支付宝] tryInput 密码长度=" + password.length());
+        L.d("[支付宝] tryInput 开始");
 
         // 直接setText+click（不再等待渲染，inputDigitPassword才是主要输入方式）
         pwdEditText.setFocusable(true);
