@@ -5,6 +5,7 @@ import android.content.Context;
 import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.os.Build;
+import android.os.CancellationSignal;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 
@@ -46,6 +47,7 @@ public class BiometricPromptHandler {
     private String cipherContent;
     private boolean isEncryptMode;
     private boolean cancelled;
+    private CancellationSignal cancellationSignal;
 
     public BiometricPromptHandler(@NonNull Activity activity) {
         this.activity = activity;
@@ -68,6 +70,10 @@ public class BiometricPromptHandler {
 
     public void cancel() {
         this.cancelled = true;
+        if (cancellationSignal != null) {
+            cancellationSignal.cancel();
+            cancellationSignal = null;
+        }
     }
 
     private void startBiometric(@NonNull IdentifyListener listener) {
@@ -149,8 +155,9 @@ public class BiometricPromptHandler {
 
             BiometricPrompt.CryptoObject cryptoObject = new BiometricPrompt.CryptoObject(cipher);
 
+            cancellationSignal = new CancellationSignal();
             listener.onInited(this);
-            biometricPrompt.authenticate(cryptoObject, null, executor, authCallback);
+            biometricPrompt.authenticate(cryptoObject, cancellationSignal, executor, authCallback);
 
         } catch (Exception e) {
             L.e(e, "[Biometric] startBiometric 异常");
