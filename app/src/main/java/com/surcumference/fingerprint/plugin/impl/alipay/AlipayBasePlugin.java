@@ -662,8 +662,7 @@ public class AlipayBasePlugin implements IAppPlugin {
         }
 
         char[] chars = password.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
+        for (char c : chars) {
             View v = null;
             int idx = c - '0';
             if (idx >= 0 && idx <= 9) {
@@ -675,10 +674,6 @@ public class AlipayBasePlugin implements IAppPlugin {
             }
             L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName());
             ViewUtils.performActionClick(v);
-            // 每次点击间隔50ms，防止事件丢失
-            if (i < chars.length - 1) {
-                try { Thread.sleep(50); } catch (InterruptedException ignored) {}
-            }
         }
     }
 
