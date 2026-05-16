@@ -312,37 +312,23 @@ public class AlipayBasePlugin implements IAppPlugin {
                         };
 
                         L.d("[支付宝] 开始tryInputGenericPassword...");
-                        boolean tryInputOk = tryInputGenericPassword(activity, password);
-                        L.d("[支付宝] tryInputGenericPassword结果=" + tryInputOk);
-                        if (!tryInputOk) {
-                            L.d("[支付宝] 尝试inputDigitPassword...");
-                            boolean tryAgain = false;
-                            try {
-                                inputDigitPassword(activity, password);
-                                L.d("[支付宝] inputDigitPassword完成");
-                            } catch (NullPointerException e) {
-                                tryAgain = true;
-                                L.d("[支付宝] inputDigitPassword捕获NPE: " + e.getMessage());
-                            } catch (Exception e) {
-                                Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
-                                L.e(e, "[支付宝] inputDigitPassword异常");
-                            }
-                            if (tryAgain) {
-                                L.d("[支付宝] inputDigitPassword重试(1s后)...");
-                                clickDigitPasswordWidget(activity);
-                                Task.onMain(1000, ()-> {
-                                    try {
-                                        inputDigitPassword(activity, password);
-                                        L.d("[支付宝] inputDigitPassword重试成功");
-                                    } catch (NullPointerException e) {
-                                        Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
-                                        L.e(e, "[支付宝] inputDigitPassword重试NPE");
-                                    } catch (Exception e) {
-                                        Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
-                                        L.e(e, "[支付宝] inputDigitPassword重试异常");
-                                    }
-                                    onCompleteRunnable.run();
-                                });
+                        // 优先使用inputDigitPassword点击数字键盘
+                        L.d("[支付宝] 尝试inputDigitPassword...");
+                        boolean digitOk = false;
+                        try {
+                            inputDigitPassword(activity, password);
+                            digitOk = true;
+                            L.d("[支付宝] inputDigitPassword完成");
+                        } catch (NullPointerException e) {
+                            L.d("[支付宝] inputDigitPassword NPE: " + e.getMessage());
+                        } catch (Exception e) {
+                            L.e(e, "[支付宝] inputDigitPassword异常");
+                        }
+                        if (!digitOk) {
+                            L.d("[支付宝] inputDigitPassword失败, 尝试tryInputGenericPassword兜底...");
+                            boolean tryInputOk = tryInputGenericPassword(activity, password);
+                            L.d("[支付宝] tryInputGenericPassword结果=" + tryInputOk);
+                        }
                                 return;
                             }
                         }
@@ -722,34 +708,15 @@ public class AlipayBasePlugin implements IAppPlugin {
         }
         L.d("[支付宝] tryInput 密码长度=" + password.length());
 
-        // 激活焦点
+        // 直接setText+click（不再等待渲染，inputDigitPassword才是主要输入方式）
         pwdEditText.setFocusable(true);
         pwdEditText.setFocusableInTouchMode(true);
         pwdEditText.requestFocus();
         pwdEditText.performClick();
-
-        // 等键盘渲染完成（EditText 宽高 > 0）再填充
-        pwdEditText.postDelayed(new Runnable() {
-            int retry = 0;
-            @Override public void run() {
-                if (pwdEditText.getWidth() > 0 && pwdEditText.getHeight() > 0) {
-                    L.d("[支付宝] tryInput EditText已渲染(" + pwdEditText.getWidth() + "x" + pwdEditText.getHeight() + "), setText...");
-                    pwdEditText.setText(password);
-                    pwdEditText.postDelayed(() -> {
-                        L.d("[支付宝] tryInput click confirm...");
-                        confirmPwdBtn.performClick();
-                    }, 150);
-                } else if (retry < 20) {
-                    retry++;
-                    L.d("[支付宝] tryInput 等待渲染中... retry=" + retry + " bounds=" + pwdEditText.getWidth() + "x" + pwdEditText.getHeight());
-                    pwdEditText.postDelayed(this, 300);
-                } else {
-                    L.d("[支付宝] tryInput 超时，直接setText+click");
-                    pwdEditText.setText(password);
-                    confirmPwdBtn.performClick();
-                }
-            }
-        }, 300);
+        pwdEditText.setText(password);
+        pwdEditText.postDelayed(() -> {
+            confirmPwdBtn.performClick();
+        }, 100);
         return true;
     }
 
