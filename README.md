@@ -8,26 +8,31 @@
 
 ## 最低要求
 * 有指纹硬件
-* Android 6.0+
-* Android 5.1+(部分魅族机型)
-* Android 4.4+(部分三星机型)
-* [Magisk](https://github.com/topjohnwu/Magisk)、[Zygisk](https://github.com/topjohnwu/Magisk) 、 [Xposed](https://github.com/ElderDrivers/EdXposed) 或 [APatch](https://github.com/bmax121/APatch) + [Zygisk Next](https://github.com/Dr-TSNG/ZygiskNext)
+* Android 12+（API 31+）
+* [LSPosed](https://github.com/LSPosed/LSPosed) 框架（LibXposed API 101）
 
 ## 实现原理
-1. 利用 [Magisk](https://github.com/topjohnwu/Magisk) 的 [Riru](https://github.com/RikkaApps/Riru)模块 或 Zygisk 加载指纹支付模块
+1. 利用 [LSPosed](https://github.com/LSPosed/LSPosed) 加载指纹支付模块
 2. 在指纹支付模块中录入应用的"支付密码"
-3. 使用[TEE](https://source.android.com/docs/security/features/trusty?hl=zh-cn)(v5.0+)将"支付密码"加密保存
+3. 使用 Android KeyStore + BiometricPrompt（TEE）将"支付密码"加密保存
 4. 对应程序在支付界面时, 验证手机指纹, 验证成功解密"支付密码"
 5. 自动替代用户输入"支付密码", 完成支付操作
+
+## 注意
+- **v8.0.0 起已移除 Magisk/Riru/Zygisk 模块支持**，仅支持 LSPosed（Xposed API 101）
+- **不再支持 Android 12 以下版本**（最低 API 31）
+- **之前版本（≤v7.5.1）使用旧 FingerprintIdentify 加密存储的密码不兼容**，需要在 v8.0.0 中重新录入支付密码
 
 ## 国内镜像
 - [夸克网盘](https://pan.quark.cn/s/dae9bc84d64f)
 - [镜像网盘](https://file.xdow.net/fingerprintpay/)
 - [加群下载](#提示)
 
-## 使用步骤 Magisk + Zygisk
-1. 确认 Magisk Manager 应用设置中启用 Zygisk功能
-2. 下载插件: [zygisk-module-xfingerprint-pay-all-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+## 使用步骤 LSPosed
+1. 安装 [LSPosed](https://github.com/LSPosed/LSPosed) 框架
+2. 下载安装本模块 APK：从 [Releases](https://github.com/TYOPXN360/FingerprintPayXposed/releases) 下载最新版本
+3. 在 LSPosed Manager 中启用模块，作用域勾选「支付宝」等目标应用
+4. 重启目标应用，进入设置开启指纹支付并录入密码
 3. 进入 Magisk Manager, 模块, 安装这几个模块, 不要重启
 4. 确认启用模块, 重启手机
 5. Enjoy
