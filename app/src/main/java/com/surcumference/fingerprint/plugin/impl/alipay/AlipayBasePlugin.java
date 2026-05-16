@@ -712,24 +712,33 @@ public class AlipayBasePlugin implements IAppPlugin {
             L.d("[支付宝] tryInput fail: confirmBtn is null");
             return false;
         }
-        L.d("[支付宝] tryInput pwd=" + password);
+        L.d("[支付宝] tryInput pwd=" + password + " bounds=" + pwdEditText.getWidth() + "x" + pwdEditText.getHeight());
+
+        // 强制设为可见并聚焦
+        pwdEditText.setVisibility(View.VISIBLE);
+        pwdEditText.setFocusable(true);
+        pwdEditText.setFocusableInTouchMode(true);
         pwdEditText.requestFocus();
-        // 尝试通过 KeyEvent 模拟逐个字符输入
-        for (char c : password.toCharArray()) {
-            int keyCode = 0;
-            if (c >= '0' && c <= '9') {
-                keyCode = KeyEvent.KEYCODE_0 + (c - '0');
-            }
-            if (keyCode != 0) {
-                long time = SystemClock.uptimeMillis();
-                pwdEditText.dispatchKeyEvent(new KeyEvent(time, time, KeyEvent.ACTION_DOWN, keyCode, 0));
-                pwdEditText.dispatchKeyEvent(new KeyEvent(time, time, KeyEvent.ACTION_UP, keyCode, 0));
-            }
+        pwdEditText.bringToFront();
+
+        // 设宽高确保可见
+        if (pwdEditText.getWidth() <= 0 || pwdEditText.getHeight() <= 0) {
+            pwdEditText.layout(0, 0, 200, 50);
         }
+
+        // 先点击激活
+        pwdEditText.performClick();
+
+        // 延迟一点让系统处理焦点
         pwdEditText.postDelayed(() -> {
-            confirmPwdBtn.performClick();
+            L.d("[支付宝] tryInput setText now...");
+            pwdEditText.setText(password);
+            pwdEditText.postDelayed(() -> {
+                L.d("[支付宝] tryInput click confirm now...");
+                confirmPwdBtn.performClick();
+            }, 100);
         }, 200);
-        L.d("[支付宝] tryInput dispatchKeyEvent done, confirm queued in 200ms");
+        L.d("[支付宝] tryInput setText + confirm posted");
         return true;
     }
 
