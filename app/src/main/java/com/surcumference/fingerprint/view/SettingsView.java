@@ -12,7 +12,9 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
+import android.widget.TextView;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
@@ -122,7 +124,30 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
 
     @Override
     public String getDialogTitle() {
-        return Lang.getString(R.id.app_settings_name) + " " + BuildConfig.VERSION_NAME + "   by TYOPXN360 & Deepseek修改";
+        return Lang.getString(R.id.app_settings_name) + " " + BuildConfig.VERSION_NAME;
+    }
+
+    @Override
+    public AlertDialog showInDialog() {
+        AlertDialog dialog = super.showInDialog();
+        // 添加灰色副标题
+        try {
+            TextView subTitle = new TextView(getContext());
+            subTitle.setText("by TYOPXN360 & Deepseek修改");
+            subTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
+            subTitle.setTextColor(0xFF888888);
+            subTitle.setPadding(DpUtils.dip2px(getContext(), 15), 0, DpUtils.dip2px(getContext(), 15), DpUtils.dip2px(getContext(), 4));
+            LinearLayout contentView = (LinearLayout) dialog.findViewById(android.R.id.content).getRootView();
+            if (contentView instanceof ViewGroup) {
+                ViewGroup root = (ViewGroup) contentView.getChildAt(0);
+                if (root instanceof LinearLayout) {
+                    ((LinearLayout) root).addView(subTitle, 1);
+                }
+            }
+        } catch (Exception e) {
+            L.e(e);
+        }
+        return dialog;
     }
 
     @Override
