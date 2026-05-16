@@ -29,19 +29,10 @@ jobs:
         with:
           base64-encoded-secret: ${{ secrets.SIGNING_STORE_BASE64 }}
           filename: "app/keystore.jks"
-      - name: Build with Gradle (minified)
-        run: rm -f app/keystore.jks && ./gradlew ":app:assembleRelease" -Pxposed=true --no-daemon
-        env:
-          BUILD_RELEASE_MINIFYENABLED: true
-          GRADLE_OPTS: -Xmx2048m
-          JAVA_TOOL_OPTIONS: -Xmx6g
+      - name: Build with Gradle (no R8)
+        run: rm -f app/keystore.jks && ./gradlew ":app:assembleRelease" -Pxposed=true
       - name: Upload APK to Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.event.release.tag_name }} app/build/outputs/apk/release/*.apk --repo ${{ github.repository }}
-      - name: Upload Mapping
-        uses: actions/upload-artifact@v4
-        with:
-          name: mapping
-          path: app/build/outputs/mapping/release/mapping.txt
