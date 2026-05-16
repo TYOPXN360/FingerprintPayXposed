@@ -1,9 +1,14 @@
 
 ![1](./app/src/main/res/mipmap-xhdpi/ic_launcher.png)
 # FingerprintPayXposed
-让微信、支付宝、淘宝、腾讯QQ、云闪付在支持指纹识别的手机上使用指纹支付.
+让微信、支付宝在支持指纹识别的手机上使用指纹支付.
 
-本项目是 [FingerprintPay](https://github.com/eritpchy/FingerprintPay) 的一个**独立分支**，使用 **LibXposed API 101**，移除了 Magisk/Riru/Zygisk 模块等已过时组件。
+> ⚠️ **非官方分支**: 本项目是基于 [FingerprintPay](https://github.com/eritpchy/FingerprintPay) 的一个**独立分支**，代码由 **AI (DeepSeek V4 Flash) 辅助生成**，非原作者 eritpchy 的官方版本。使用风险自负，不保证与上游版本行为一致。
+
+## 特点
+- 使用 **LibXposed API 101**（仅 LSPosed）
+- 移除 Magisk/Riru/Zygisk 模块等已过时组件
+- 最低 Android 12+（API 31+）
 
 ## 最低要求
 - 有指纹硬件
@@ -29,17 +34,13 @@
 | 软件 | 路径 |
 | ------ | -------------------------------- |
 | 支付宝 | 我的 → 设置 → 支付设置 → 指纹设置 |
-| 淘宝   | 我的淘宝 → 设置 → 支付设置 → 指纹设置 |
 | 微信   | 我 → 设置 → 指纹设置 |
-| QQ     | 头像 → 设置 → 指纹设置 |
-| 云闪付 | 我的 → 设置 → 指纹设置 |
+
+> 淘宝、QQ、云闪付未经测试，理论上兼容，可自行尝试
 
 ## 详细教程
 - [支付宝](./doc/Alipay)
-- [淘宝](./doc/Taobao)
 - [微信](./doc/WeChat)
-- [QQ](./doc/QQ)
-- [云闪付](./doc/UnionPay)
 
 ## 更新内容 (v8.0.0)
 ### 🚀 重大变更
@@ -61,7 +62,7 @@
 ### ⚠️ 注意
 - **≤v7.5.1 版本加密存储的密码不兼容**，需在 v8.0.0 中重新录入
 
-*本版本代码由 **DeepSeek V4 Flash** 修改*
+> ⚠️ **警告**: 本版本代码由 AI (DeepSeek V4 Flash) 辅助生成，非原作者官方版本。
 
 ## 常见问题
 1. **插件已安装但应用内看不见菜单？** \

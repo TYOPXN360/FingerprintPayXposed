@@ -29,10 +29,9 @@ public class Constant {
         "https://cdn.gh-proxy.org/https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/license.md",
         "https://edgeone.gh-proxy.org/https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/license.md",
     };
-    public static final String PROJECT_URL = "https://github.com/eritpchy/FingerprintPay";
+    public static final String PROJECT_URL = "https://github.com/TYOPXN360/FingerprintPayXposed";
     public static final String[] UPDATE_URLS = new String[] {
-        "https://api.github.com/repos/eritpchy/FingerprintPay/releases/latest",
-        "https://accelerate.xdow.net/api/repos/eritpchy/FingerprintPay/releases/latest",
+        "https://api.github.com/repos/TYOPXN360/FingerprintPayXposed/releases/latest",
     };
     //url/version/name
     public static final String UPDATE_URL_MIRROR_FILE = "https://file.xdow.net/d/download/fingerprintpay/%s/%s";

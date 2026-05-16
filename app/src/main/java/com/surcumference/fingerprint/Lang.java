@@ -104,7 +104,7 @@ public class Lang {
             case R.id.settings_title_no_fingerprint_icon:
                 return tr("显示指纹图标", "顯示指紋圖標", "Fingerprint Icon");
             case R.id.settings_title_donate:
-                return tr("赞助我", "贊助我", "Donate me");
+                return tr("赞助上游作者", "贊助上游作者", "Donate (Original Author)");
             case R.id.settings_title_advance:
                 return tr("通用设置", "一般选项", "General");
             case R.id.settings_title_use_biometric_api:
@@ -132,7 +132,7 @@ public class Lang {
             case R.id.settings_sub_title_donate:
                 return tr("如果您觉得本软件好用, 欢迎赞助, 多少都是心意", "如果您覺得本軟件好用, 歡迎贊助, 多少都是心意", "Donate me, If you like this project");
             case R.id.settings_sub_title_advance:
-                return tr("指纹图标、Biometric Api...", "指紋圖標、Biometric Api...", "Fingerprint icon, Biometric API...");
+                return tr("指纹图标、通用选项", "指紋圖標、一般選項", "Fingerprint icon, General");
             case R.id.settings_sub_title_update_modules_same_time:
                 return tr("将同时升级以下模块", "將同時升級以下模塊", "The following modules will be upgraded at the same time");
             case R.id.settings_sub_title_use_biometric_api:

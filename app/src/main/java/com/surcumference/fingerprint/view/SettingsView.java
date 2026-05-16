@@ -122,7 +122,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
 
     @Override
     public String getDialogTitle() {
-        return Lang.getString(R.id.app_settings_name) + " " + BuildConfig.VERSION_NAME;
+        return Lang.getString(R.id.app_settings_name) + " " + BuildConfig.VERSION_NAME + "   by TYOPXN360 & Deepseek修改";
     }
 
     @Override
