@@ -18,6 +18,8 @@ import android.util.TypedValue;
 import android.view.*;
 import android.widget.*;
 
+import androidx.fragment.app.FragmentActivity;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -33,7 +35,7 @@ import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListe
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.ActivityViewObserverHolder;
 import com.surcumference.fingerprint.util.ApplicationUtils;
-import com.surcumference.fingerprint.util.BizBiometricIdentify;
+import com.surcumference.fingerprint.util.BiometricPromptHandler;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
@@ -44,13 +46,10 @@ import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.WeChatVersionControl;
-import com.surcumference.fingerprint.util.XBiometricIdentify;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.util.paydialog.WeChatPayDialog;
 import com.surcumference.fingerprint.view.SettingsView;
-import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -66,7 +65,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     private WeakHashMap<View, View.OnAttachStateChangeListener> mView2OnAttachStateChangeListenerMap = new WeakHashMap<>();
     protected boolean mMockCurrentUser = false;
-    protected XBiometricIdentify mFingerprintIdentify;
+    protected BiometricPromptHandler mFingerprintIdentify;
     private FragmentObserver mFragmentObserver;
     private int mWeChatVersionCode = 0;
     private boolean mFingerprintIdentifyTemporaryBlocking = false;
@@ -96,19 +95,20 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                                                     OnFingerprintVerificationOKListener onSuccessUnlockCallback,
                                                     final Runnable onFailureUnlockCallback) {
         cancelFingerprintIdentify();
-        mFingerprintIdentify = new BizBiometricIdentify(context)
-                .withMockCurrentUserCallback(this)
-                .decryptPasscode(passwordEncrypted, new BizBiometricIdentify.IdentifyListener() {
+        if (!(context instanceof FragmentActivity)) {
+            L.e("[微信] initFingerPrintLock: Context不是FragmentActivity");
+            return;
+        }
+        mFingerprintIdentify = new BiometricPromptHandler((FragmentActivity) context);
+        mFingerprintIdentify.decryptPasscode(passwordEncrypted, new BiometricPromptHandler.IdentifyListener() {
 
                     @Override
-                    public void onDecryptionSuccess(BizBiometricIdentify identify, @NonNull String decryptedContent) {
-                        super.onDecryptionSuccess(identify, decryptedContent);
+                    public void onDecryptionSuccess(BiometricPromptHandler h, @NonNull String decryptedContent) {
                         onSuccessUnlockCallback.onFingerprintVerificationOK(decryptedContent);
                     }
 
                     @Override
-                    public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
-                        super.onFailed(target, failInfo);
+                    public void onFailed(BiometricPromptHandler h, int errorCode, @Nullable String errString) {
                         onFailureUnlockCallback.run();
                     }
                 });
@@ -980,14 +980,11 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
     }
 
     private void cancelFingerprintIdentify() {
-        XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
+        BiometricPromptHandler fingerprintIdentify = mFingerprintIdentify;
         if (fingerprintIdentify == null) {
             return;
         }
-        if (!fingerprintIdentify.fingerprintScanStateReady) {
-            return;
-        }
-        fingerprintIdentify.cancelIdentify();
+        fingerprintIdentify.cancel();
         mFingerprintIdentify = null;
     }
 

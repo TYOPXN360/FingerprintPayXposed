@@ -19,6 +19,7 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 
 import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
@@ -27,15 +28,14 @@ import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.adapter.PreferenceAdapter;
 import com.surcumference.fingerprint.network.update.UpdateFactory;
-import com.surcumference.fingerprint.util.BizBiometricIdentify;
+import com.surcumference.fingerprint.util.AESUtils;
+import com.surcumference.fingerprint.util.BiometricPromptHandler;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.log.L;
-import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -217,41 +217,28 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     private void updatePassword(DialogInterface passwordInputDialog, final String password,
                                 @Nullable Runnable onSuccess) {
         Context context = this.getContext();
-        BizBiometricIdentify fingerprintIdentify = new BizBiometricIdentify(context);
-        AlertDialog fingerprintVerificationDialog = new FingerprintVerificationView(context)
-                .withOnCancelButtonClickListener((target) -> {
-            DialogUtils.dismiss(target.getDialog());
-            fingerprintIdentify.cancelIdentify();
-        }).withOnDismissListener(v -> {
-            fingerprintIdentify.cancelIdentify();
-        }).showInDialog();
-        fingerprintIdentify.encryptPasscode(password, new BizBiometricIdentify.IdentifyListener() {
+        if (!(context instanceof FragmentActivity)) {
+            L.e("[SettingsView] Context is not FragmentActivity, cannot use BiometricPrompt");
+            return;
+        }
+        BiometricPromptHandler handler = new BiometricPromptHandler((FragmentActivity) context);
+        handler.encryptPasscode(password, new BiometricPromptHandler.IdentifyListener() {
 
             @Override
-            public void onInited(BizBiometricIdentify identify) {
-                super.onInited(identify);
-                if (identify.isUsingBiometricApi()) {
-                    ViewUtils.setAlpha(fingerprintVerificationDialog, 0);
-                }
-            }
-
-            @Override
-            public void onEncryptionSuccess(BizBiometricIdentify identify, @NonNull String encryptedContent, @Nullable byte[] encryptedIV) {
-                super.onEncryptionSuccess(identify, encryptedContent, encryptedIV);
+            public void onEncryptionSuccess(BiometricPromptHandler h, @NonNull String encryptedContent, @Nullable byte[] encryptedIV) {
+                Config config = Config.from(context);
+                config.setPasswordEncrypted(encryptedContent);
+                config.setPasswordIV(AESUtils.byte2hex(encryptedIV != null ? encryptedIV : new byte[0]));
+                config.commit();
                 Task.onMain(456, () -> NotifyUtils.notifyBiometricIdentify(context, Lang.getString(R.id.toast_fingerprint_password_enc_success)));
                 passwordInputDialog.dismiss();
-                fingerprintVerificationDialog.dismiss();
                 if (onSuccess != null) {
                     onSuccess.run();
                 }
             }
 
             @Override
-            public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
-                super.onFailed(target, failInfo);
-                ViewUtils.setAlpha(fingerprintVerificationDialog, 1);
-                ViewUtils.setDimAmount(fingerprintVerificationDialog, 0.6f);
-                fingerprintVerificationDialog.dismiss();
+            public void onFailed(BiometricPromptHandler h, int errorCode, @Nullable String errString) {
                 Toaster.showShort(Lang.getString(R.id.toast_fingerprint_operation_cancel));
             }
         });

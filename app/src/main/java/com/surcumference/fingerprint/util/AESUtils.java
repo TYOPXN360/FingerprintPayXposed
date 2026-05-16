@@ -1,9 +1,6 @@
 package com.surcumference.fingerprint.util;
 
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.surcumference.fingerprint.util.log.L;
 
 import java.io.UnsupportedEncodingException;
@@ -13,7 +10,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 ///* AES对称加密解密类 */ 
-public class AESUtils implements XBiometricIdentify.ICryptoHandler {
+public class AESUtils {
 
     public static final AESUtils INSTANCE = new AESUtils();
     private static final String CipherMode = "AES/ECB/PKCS5Padding";
@@ -65,17 +62,6 @@ public class AESUtils implements XBiometricIdentify.ICryptoHandler {
     }
 
 
-    @Override
-    public String encrypt(@NonNull Cipher cipher, @NonNull String content) {
-        if (cipher == null) {
-            throw new IllegalArgumentException("cipher must not null");
-        }
-        if (content == null) {
-            throw new IllegalArgumentException("content must not null");
-        }
-        return AESUtils.byte2hex(encrypt(cipher, content.getBytes(StandardCharsets.UTF_8)));
-    }
-
     // /** 加密(结果为16进制字符串) **/
     public static String encrypt(String content, String password) {
         byte[] data = null;
@@ -108,22 +94,6 @@ public class AESUtils implements XBiometricIdentify.ICryptoHandler {
             L.e(e);
         }
         return null;
-    }
-
-    @Nullable
-    @Override
-    public String decrypt(@NonNull Cipher cipher, @NonNull String content) {
-        if (cipher == null) {
-            throw new IllegalArgumentException("cipher must not null");
-        }
-        if (content == null) {
-            throw new IllegalArgumentException("content must not null");
-        }
-        byte[] data = decrypt(cipher, AESUtils.hex2byte(content));
-        if (data == null) {
-            return null;
-        }
-        return new String(data);
     }
 
     // /** 解密16进制的字符串为字符串 **/
