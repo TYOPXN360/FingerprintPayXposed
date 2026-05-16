@@ -669,8 +669,10 @@ public class AlipayBasePlugin implements IAppPlugin {
             char c = chars[idx];
             View v = null;
             int digit = c - '0';
-            if (digit >= 0 && digit <= 9) {
-                v = ks[digit];
+            if (digit >= 1 && digit <= 9) {
+                v = ks[digit - 1]; // '1'→ks[0], '2'→ks[1], ..., '9'→ks[8]
+            } else if (digit == 0) {
+                v = ks[9]; // '0'→ks[9]
             }
             if (v == null) {
                 L.d("[支付宝] inputDigit按键" + c + "未找到View");
