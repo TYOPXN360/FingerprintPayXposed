@@ -34,5 +34,6 @@ jobs:
       - name: Upload APK to Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.event.release.tag_name || 'v7.5.1' }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} app/build/outputs/apk/release/*.apk --repo ${{ github.repository }}
+          gh release upload "$TAG_NAME" app/build/outputs/apk/release/*.apk --repo ${{ github.repository }}
