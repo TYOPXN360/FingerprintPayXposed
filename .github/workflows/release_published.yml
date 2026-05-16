@@ -9,16 +9,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Publish release
+      - name: Get current time
+        id: current-time
+        run: echo "formattedTime=$(TZ='Asia/Shanghai' date '+%Y%m%d-%H')" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies
         run: |
-          RCLONE_CONFIG_WEBDAV_PASS=$(docker run --rm rclone/rclone obscure $WEBDAV_PASSWORD)
-          docker run --rm \
-            -e RCLONE_CONFIG_WEBDAV_TYPE=webdav \
-            -e RCLONE_CONFIG_WEBDAV_USER=$RCLONE_CONFIG_WEBDAV_USER \
-            -e RCLONE_CONFIG_WEBDAV_URL=$RCLONE_CONFIG_WEBDAV_URL \
-            -e RCLONE_CONFIG_WEBDAV_PASS=$RCLONE_CONFIG_WEBDAV_PASS \
-            rclone/rclone moveto webdav:/${{ github.event.release.name }}-dev webdav:/${{ github.event.release.name }}
+          sudo apt-get update
+          sudo apt-get install -y libarchive-zip-perl
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: rm -f app/keystore.jks && ./gradlew clean && ./gradlew ":app:assembleRelease" -Pxposed=true
         env:
-          RCLONE_CONFIG_WEBDAV_USER: ${{secrets.WEBDAV_USERNAME}}
-          RCLONE_CONFIG_WEBDAV_URL: ${{secrets.WEBDAV_ADDRESS}}
-          WEBDAV_PASSWORD: ${{secrets.WEBDAV_PASSWORD}}
+          BUILD_RELEASE_MINIFYENABLED: ${{ vars.BUILD_RELEASE_MINIFYENABLED }}
+      - name: Upload APK to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} app/build/outputs/apk/release/*.apk --repo ${{ github.repository }}

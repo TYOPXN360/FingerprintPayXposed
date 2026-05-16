@@ -83,6 +83,15 @@
    3.3 尝试, 取消勾选插件, 再次勾选插件, 关机, 再开机(仅旧版Xposed需要, LSPosed 以及 Magisk模块不需要)
 2. Xposed版只能使用play版本云闪付, 否则打开闪退! riru, zygisk版本暂未发现相关问题
 
+## v7.5.0 更新内容
+
+- **BiometricPrompt 升级**：用 Android 平台 API 替换第三方指纹库 FingerprintIdentify
+- **Android KeyStore**：AES/GCM 加密存储支付密码
+- **适配**：支付宝 10.8.66.8000 极速付款模式支付测试通过
+- **SDK**：minSdk 提升至 31、targetSdk 提升至 36
+- 微信方面未作测试
+- 本版本代码由 **DeepSeek V4 Flash** 修改
+
 ## 致谢
 * [Riru](https://github.com/RikkaApps/Riru)
 * [EdXposed](https://github.com/ElderDrivers/EdXposed)
