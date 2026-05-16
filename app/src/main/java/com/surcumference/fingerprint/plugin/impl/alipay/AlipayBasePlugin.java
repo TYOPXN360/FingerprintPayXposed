@@ -185,10 +185,9 @@ public class AlipayBasePlugin implements IAppPlugin {
 
                         if (anyCondition) {
                             if (mIsViewTreeObserverFirst) {
-                                mIsViewTreeObserverFirst = false;
-                                Task.onMain(1000, () -> {
-                                    showFingerPrintDialog(activity);
-                                });
+                                if (showFingerPrintDialog(activity)) {
+                                    mIsViewTreeObserverFirst = false;
+                                }
                             }
                             return;
                         }
@@ -701,6 +700,8 @@ public class AlipayBasePlugin implements IAppPlugin {
         if (confirmPwdBtn == null) {
             return false;
         }
+        pwdEditText.performClick();
+        pwdEditText.requestFocus();
         pwdEditText.setText(password);
         confirmPwdBtn.performClick();
         return true;
