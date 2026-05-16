@@ -672,8 +672,15 @@ public class AlipayBasePlugin implements IAppPlugin {
                 L.d("[支付宝] inputDigit按键" + c + "未找到View");
                 continue;
             }
-            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName() + " method=performClick");
+            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName());
             v.performClick();
+            // 等待120ms模拟人类点击间隔
+            if (i < chars.length - 1) {
+                long waitStart = SystemClock.uptimeMillis();
+                while (SystemClock.uptimeMillis() - waitStart < 120) {
+                    try { Thread.sleep(10); } catch (InterruptedException ignored) {}
+                }
+            }
         }
     }
 
