@@ -184,7 +184,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         } else if (Lang.getString(R.id.settings_title_webside).equals(data.title)) {
             com.surcumference.fingerprint.util.UrlUtils.openUrl(context, Constant.PROJECT_URL);
             Task.onMain(1000, () -> Toaster.showLong(Lang.getString(R.id.toast_give_me_star)));
-
+        }
     }
 
     private void showUpdatePasswordViewDialog() {
