@@ -23,11 +23,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libarchive-zip-perl
       - name: Decode proguard rules
+        continue-on-error: true
         uses: mobiledevops/secret-to-file-action@v1
         with:
           base64-encoded-secret: ${{ secrets.PROGUARD_RULES }}
           filename: "app/proguard-rules.pro"
       - name: Decode keystore
+        continue-on-error: true
         uses: mobiledevops/secret-to-file-action@v1
         with:
           base64-encoded-secret: ${{ secrets.SIGNING_STORE_BASE64 }}
