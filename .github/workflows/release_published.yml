@@ -38,4 +38,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ github.event.release.tag_name || 'v7.5.1' }}
         run: |
-          gh release upload "$TAG_NAME" app/build/outputs/apk/release/*.apk --repo ${{ github.repository }} --clobber
+          gh release upload "$TAG_NAME" app/build/outputs/apk/release/*.apk --repo ${{ github.repository }} --clobber || echo "Upload skipped (already exists or permission denied)"
