@@ -755,9 +755,7 @@ public class AlipayBasePlugin implements IAppPlugin {
         View okView =  ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "button_ok");
         L.d("okView", okView);
         if (okView != null) {
-            if (!okView.isShown()) {
-                return null;
-            }
+            // 即使不可见也返回 - 新版支付宝密码框按钮可能还未布局完成
             return okView;
         }
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
