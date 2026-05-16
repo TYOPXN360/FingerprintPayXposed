@@ -716,11 +716,16 @@ public class AlipayBasePlugin implements IAppPlugin {
     }
 
     private EditText findPasswordEditText(Activity activity) {
-        // 尝试标准密码输入框
+        // 尝试标准密码输入框（允许不可见，后续再验证）
         View pwdEditText = ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password");
-        L.v("[支付宝] findPasswordEditText: input_et_password -> " + pwdEditText);
-        if (pwdEditText instanceof EditText && pwdEditText.isShown()) {
-            L.d("[支付宝] 找到密码输入框: input_et_password");
+        L.v("[支付宝] findPasswordEditText: input_et_password -> " + pwdEditText + " shown=" + (pwdEditText != null && pwdEditText.isShown()));
+        if (pwdEditText instanceof EditText) {
+            if (pwdEditText.isShown()) {
+                L.d("[支付宝] 找到可见密码输入框: input_et_password");
+                return (EditText) pwdEditText;
+            }
+            L.d("[支付宝] input_et_password 存在但不可见, 等待布局完成, bounds=" + pwdEditText.getWidth() + "x" + pwdEditText.getHeight());
+            // 即使不可见也返回, 给上层一次机会
             return (EditText) pwdEditText;
         }
         // 极速付款模式: 尝试新的6位密码输入视图ID
@@ -737,7 +742,7 @@ public class AlipayBasePlugin implements IAppPlugin {
             L.d("[支付宝] 找到密码输入框: ap_six_number_pwd_input(antui)");
             return (EditText) pwdEditText;
         }
-        L.d("[支付宝] 未找到标准密码输入框, 回退到遍历搜索");
+        L.d("[支付宝] 未找到输入框(input_et_password存在但不可见), 回退到遍历搜索");
         // long password
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
         List<View> outList = new ArrayList<>();
