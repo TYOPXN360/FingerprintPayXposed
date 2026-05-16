@@ -2,6 +2,7 @@ package com.surcumference.fingerprint.view;
 
 import static com.surcumference.fingerprint.view.PasswordInputView.DEFAULT_HIDDEN_PASS;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -19,7 +20,6 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
 
 import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
@@ -217,11 +217,11 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     private void updatePassword(DialogInterface passwordInputDialog, final String password,
                                 @Nullable Runnable onSuccess) {
         Context context = this.getContext();
-        if (!(context instanceof FragmentActivity)) {
-            L.e("[SettingsView] Context is not FragmentActivity, cannot use BiometricPrompt");
+        if (!(context instanceof Activity)) {
+            L.e("[SettingsView] Context is not Activity, cannot use BiometricPrompt");
             return;
         }
-        BiometricPromptHandler handler = new BiometricPromptHandler((FragmentActivity) context);
+        BiometricPromptHandler handler = new BiometricPromptHandler((Activity) context);
         handler.encryptPasscode(password, new BiometricPromptHandler.IdentifyListener() {
 
             @Override
