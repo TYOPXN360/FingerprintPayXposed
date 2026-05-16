@@ -12,9 +12,9 @@ buildscript {
     }
 }
 
-
 allprojects {
     repositories {
+        // Aliyun mirror (has Chinese-specific libs like crossbowffs.remotepreferences)
         maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
         google()
         mavenCentral()
