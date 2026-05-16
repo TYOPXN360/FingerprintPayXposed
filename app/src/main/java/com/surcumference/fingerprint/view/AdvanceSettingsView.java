@@ -75,9 +75,6 @@ public class AdvanceSettingsView extends DialogFrameLayout implements AdapterVie
         mListView.setDivider(new ColorDrawable(Color.TRANSPARENT));
         Config config = Config.from(context);
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_no_fingerprint_icon), Lang.getString(R.id.settings_sub_title_no_fingerprint_icon), true, config.isShowFingerprintIcon()));
-        mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_use_biometric_api), Lang.getString(R.id.settings_sub_title_use_biometric_api), true, config.isUseBiometricApi()));
-        mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_volume_down_fingerprint_temporary_disable), Lang.getString(R.id.settings_sub_title_volume_down_fingerprint_temporary_disable), true,
-                config.isVolumeDownMonitorEnabled() && !config.isUseBiometricApi()));
         mListAdapter = new PreferenceAdapter(mSettingsDataList);
         rootVerticalLayout.addView(lineView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtils.dip2px(context, 2)));
         rootVerticalLayout.addView(mListView);
@@ -105,15 +102,7 @@ public class AdvanceSettingsView extends DialogFrameLayout implements AdapterVie
             data.selectionState = !data.selectionState;
             config.setShowFingerprintIcon(data.selectionState);
             mListAdapter.notifyDataSetChanged();
-        } else if (Lang.getString(R.id.settings_title_use_biometric_api).equals(data.title)) {
-            data.selectionState = !data.selectionState;
-            config.setUseBiometricApi(data.selectionState);
-            mListAdapter.notifyDataSetChanged();
-        } else if (Lang.getString(R.id.settings_title_volume_down_fingerprint_temporary_disable).equals(data.title)) {
-            data.selectionState = !data.selectionState;
-            config.setVolumeDownMonitorEnabled(data.selectionState);
-            mListAdapter.notifyDataSetChanged();
-        }
+
     }
 
     private PreferenceAdapter.Data findDataItem(String title) {

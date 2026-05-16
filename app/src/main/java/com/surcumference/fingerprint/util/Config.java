@@ -100,7 +100,7 @@ public class Config {
     }
 
     public boolean isUseBiometricApi() {
-        return mCache.sharedPreferences.getBoolean("biometric_api", false);
+        return mCache.sharedPreferences.getBoolean("biometric_api", true);
     }
 
     public void setUseBiometricApi(boolean on) {
