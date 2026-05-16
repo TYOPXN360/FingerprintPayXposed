@@ -304,7 +304,7 @@ public class AlipayBasePlugin implements IAppPlugin {
                 .withOnShowListener((target) -> {
                     AlertDialog dialog = target.getDialog();
                     initFingerPrintLock(context, dialog, passwordEncrypted, (password) -> {
-                        L.d("[支付宝] 认证成功回调, password前3位=" + password.substring(0, Math.min(password.length(), 3)) + "***");
+                        L.d("[支付宝] 认证成功回调, 密码长度=" + password.length());
                         BlackListUtils.applyIfNeeded(context);
                         Runnable onCompleteRunnable = () -> {
                             mPwdActivityReShowDelayTimeMsec = 1000;
@@ -646,56 +646,58 @@ public class AlipayBasePlugin implements IAppPlugin {
         int versionCode = getVersionCode(activity);
         DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
         View ks[] = new View[] {
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key2),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key3),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key4),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key5),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key6),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key7),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key8),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key9),
-                ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key0),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1, "1"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key2, "2"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key3, "3"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key4, "4"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key5, "5"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key6, "6"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key7, "7"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key8, "8"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key9, "9"),
+                findDigitKeyView(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key0, "0"),
         };
         char[] chars = password.toCharArray();
         for (char c : chars) {
-            View v;
-            switch (c) {
-                case '1':
-                    v = ks[0];
-                    break;
-                case '2':
-                    v = ks[1];
-                    break;
-                case '3':
-                    v = ks[2];
-                    break;
-                case '4':
-                    v = ks[3];
-                    break;
-                case '5':
-                    v = ks[4];
-                    break;
-                case '6':
-                    v = ks[5];
-                    break;
-                case '7':
-                    v = ks[6];
-                    break;
-                case '8':
-                    v = ks[7];
-                    break;
-                case '9':
-                    v = ks[8];
-                    break;
-                case '0':
-                    v = ks[9];
-                    break;
-                default:
-                    continue;
+            View v = null;
+            int idx = c - '0';
+            if (idx >= 0 && idx <= 9) {
+                v = ks[idx];
             }
+            if (v == null) {
+                L.d("[支付宝] inputDigit按键" + c + "未找到View");
+                continue;
+            }
+            L.d("[支付宝] inputDigit点击按键" + c + " view=" + v.getClass().getName());
             ViewUtils.performActionClick(v);
         }
+    }
+
+    private View findDigitKeyView(Activity activity, String pkg, String keyId, String digitText) {
+        // 先按ID查找
+        View v = ViewUtils.findViewByName(activity, pkg, keyId);
+        if (v != null) {
+            L.d("[支付宝] 数字键[" + digitText + "]通过ID找到: " + v.getClass().getName() + " " + v.getId());
+            return v;
+        }
+        // ID查找失败，按文本查找
+        ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
+        List<View> outList = new ArrayList<>();
+        ViewUtils.getChildViews(rootView, "", outList);
+        for (View view : outList) {
+            if (view instanceof android.widget.Button || view instanceof android.widget.TextView) {
+                CharSequence text = null;
+                if (view instanceof android.widget.TextView) {
+                    text = ((android.widget.TextView) view).getText();
+                }
+                if (text != null && digitText.equals(text.toString().trim())) {
+                    L.d("[支付宝] 数字键[" + digitText + "]通过文本找到: " + view.getClass().getName() + " shown=" + view.isShown());
+                    return view;
+                }
+            }
+        }
+        L.d("[支付宝] 数字键[" + digitText + "]未找到");
+        return null;
     }
 
     private boolean tryInputGenericPassword(Activity activity, String password) {
@@ -712,7 +714,7 @@ public class AlipayBasePlugin implements IAppPlugin {
             L.d("[支付宝] tryInput fail: confirmBtn is null");
             return false;
         }
-        L.d("[支付宝] tryInput pwd=" + password);
+        L.d("[支付宝] tryInput 密码长度=" + password.length());
 
         // 激活焦点
         pwdEditText.setFocusable(true);
