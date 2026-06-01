@@ -18,6 +18,7 @@ import com.surcumference.fingerprint.util.log.L;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.UnrecoverableKeyException;
 import java.util.concurrent.Executor;
 
 import javax.crypto.Cipher;
@@ -95,7 +96,15 @@ public class BiometricPromptHandler {
         try {
             Cipher cipher = createCipher(isEncryptMode);
             if (cipher == null) {
-                listener.onFailed(this, -1, "Failed to create cipher");
+                if (!isEncryptMode) {
+                    L.w("[Biometric] 解密模式下cipher创建失败, 清除已失效的密码");
+                    config.setPasswordEncrypted("");
+                    config.setPasswordIV("");
+                    config.commit();
+                    listener.onFailed(this, -1, "KEY_INVALIDATED");
+                } else {
+                    listener.onFailed(this, -1, "Failed to create cipher");
+                }
                 return;
             }
 
@@ -171,36 +180,65 @@ public class BiometricPromptHandler {
         keyStore.load(null);
 
         if (!keyStore.containsAlias(KEY_NAME)) {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE);
-            keyGenerator.init(new KeyGenParameterSpec.Builder(KEY_NAME,
-                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setUserAuthenticationRequired(true)
-                    .setUserAuthenticationValidityDurationSeconds(-1)
-                    .build());
-            keyGenerator.generateKey();
-            L.d("[Biometric] 新密钥已生成");
+            generateNewKey(keyStore);
         }
 
-        SecretKey key = (SecretKey) keyStore.getKey(KEY_NAME, null);
+        SecretKey key;
+        try {
+            key = (SecretKey) keyStore.getKey(KEY_NAME, null);
+        } catch (UnrecoverableKeyException e) {
+            L.w("[Biometric] 密钥不可恢复, 删除并重新生成");
+            keyStore.deleteEntry(KEY_NAME);
+            generateNewKey(keyStore);
+            key = (SecretKey) keyStore.getKey(KEY_NAME, null);
+        }
         if (key == null) {
             L.e("[Biometric] 密钥获取失败");
             return null;
         }
 
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        if (encryptMode) {
-            cipher.init(Cipher.ENCRYPT_MODE, key);
-        } else {
-            String ivHex = config.getPasswordIV();
-            if (ivHex != null && !ivHex.isEmpty()) {
-                byte[] iv = AESUtils.hex2byte(ivHex);
-                cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
+        try {
+            if (encryptMode) {
+                cipher.init(Cipher.ENCRYPT_MODE, key);
             } else {
-                cipher.init(Cipher.DECRYPT_MODE, key);
+                String ivHex = config.getPasswordIV();
+                if (ivHex != null && !ivHex.isEmpty()) {
+                    byte[] iv = AESUtils.hex2byte(ivHex);
+                    cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
+                } else {
+                    cipher.init(Cipher.DECRYPT_MODE, key);
+                }
             }
+        } catch (android.security.keystore.KeyPermanentlyInvalidatedException e) {
+            L.w("[Biometric] 密钥已永久失效(指纹注册信息变更), 删除并重新生成");
+            keyStore.deleteEntry(KEY_NAME);
+            if (!encryptMode) {
+                L.w("[Biometric] 解密模式下密钥失效, 旧密码无法解密");
+                return null;
+            }
+            generateNewKey(keyStore);
+            key = (SecretKey) keyStore.getKey(KEY_NAME, null);
+            if (key == null) {
+                L.e("[Biometric] 重新生成密钥后仍获取失败");
+                return null;
+            }
+            cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, key);
         }
         return cipher;
+    }
+
+    private void generateNewKey(KeyStore keyStore) throws Exception {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE);
+        keyGenerator.init(new KeyGenParameterSpec.Builder(KEY_NAME,
+                KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setUserAuthenticationRequired(true)
+                .setUserAuthenticationValidityDurationSeconds(-1)
+                .build());
+        keyGenerator.generateKey();
+        L.d("[Biometric] 新密钥已生成");
     }
 }

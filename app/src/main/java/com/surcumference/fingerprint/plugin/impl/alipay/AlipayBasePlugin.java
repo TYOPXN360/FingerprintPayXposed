@@ -242,7 +242,6 @@ public class AlipayBasePlugin implements IAppPlugin {
             L.e("[支付宝] initFingerPrintLock: Context不是Activity");
             return;
         }
-        // Hide the custom dialog since BiometricPrompt shows system UI
         ViewUtils.setAlpha(dialog, 0);
         ViewUtils.setDimAmount(dialog, 0);
         mFingerprintIdentify = new BiometricPromptHandler((Activity) context);
@@ -255,6 +254,9 @@ public class AlipayBasePlugin implements IAppPlugin {
 
                     @Override
                     public void onFailed(BiometricPromptHandler h, int errorCode, @Nullable String errString) {
+                        if ("KEY_INVALIDATED".equals(errString)) {
+                            Toaster.showLong(Lang.getString(R.id.toast_fingerprint_key_invalidated));
+                        }
                         if (dialog != null) {
                             ViewUtils.setAlpha(dialog, 1);
                             ViewUtils.setDimAmount(dialog, 0.6f);

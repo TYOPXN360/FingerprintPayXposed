@@ -137,11 +137,14 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             subTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
             subTitle.setTextColor(0xFF888888);
             subTitle.setPadding(DpUtils.dip2px(getContext(), 15), 0, DpUtils.dip2px(getContext(), 15), DpUtils.dip2px(getContext(), 4));
-            LinearLayout contentView = (LinearLayout) dialog.findViewById(android.R.id.content).getRootView();
-            if (contentView instanceof ViewGroup) {
-                ViewGroup root = (ViewGroup) contentView.getChildAt(0);
-                if (root instanceof LinearLayout) {
-                    ((LinearLayout) root).addView(subTitle, 1);
+            View contentView = dialog.findViewById(android.R.id.content);
+            if (contentView != null) {
+                View rootView = contentView.getRootView();
+                if (rootView instanceof ViewGroup) {
+                    ViewGroup rootGroup = (ViewGroup) rootView;
+                    if (rootGroup.getChildCount() > 0 && rootGroup.getChildAt(0) instanceof LinearLayout) {
+                        ((LinearLayout) rootGroup.getChildAt(0)).addView(subTitle, 1);
+                    }
                 }
             }
         } catch (Exception e) {

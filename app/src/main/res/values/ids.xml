@@ -94,6 +94,7 @@
     <item name="toast_fingerprint_password_enc_success" type="id"/>
     <item name="toast_fingerprint_password_dec_failed" type="id"/>
     <item name="toast_fingerprint_operation_cancel" type="id"/>
+    <item name="toast_fingerprint_key_invalidated" type="id"/>
     <item name="toast_fingerprint_temporary_disabled" type="id"/>
     <item name="toast_password_not_set_alipay" type="id"/>
     <item name="toast_password_not_set_wechat" type="id"/>

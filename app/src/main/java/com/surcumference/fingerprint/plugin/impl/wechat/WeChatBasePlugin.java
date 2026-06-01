@@ -107,6 +107,9 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
 
                     @Override
                     public void onFailed(BiometricPromptHandler h, int errorCode, @Nullable String errString) {
+                        if ("KEY_INVALIDATED".equals(errString)) {
+                            Toaster.showLong(Lang.getString(R.id.toast_fingerprint_key_invalidated));
+                        }
                         onFailureUnlockCallback.run();
                     }
                 });

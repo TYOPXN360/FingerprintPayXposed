@@ -192,6 +192,8 @@ public class Lang {
                 return tr("支付密码解密失败, 请重新设定支付密码", "支付密码解密失败, 请重新设定支付密码", "Decryption of payment password failed, please reset the payment password");
             case R.id.toast_fingerprint_operation_cancel:
                 return tr("操作已取消", "操作已取消", "The operation has been canceled");
+            case R.id.toast_fingerprint_key_invalidated:
+                return tr("指纹信息已变更，请重新设定支付密码", "指紋信息已變更，請重新設定支付密碼", "Fingerprint changed, please reset payment password");
             case R.id.toast_fingerprint_temporary_disabled:
                 return tr("指纹支付已临时禁用1分钟", "指紋支付已臨時禁用1分鐘", "Fingerprint payment has been temporarily disabled for 1 minute");
             case R.id.toast_password_not_set_alipay:
