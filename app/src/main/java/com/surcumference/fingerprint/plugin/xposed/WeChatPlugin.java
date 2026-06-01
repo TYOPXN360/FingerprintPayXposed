@@ -135,10 +135,14 @@ public class WeChatPlugin {
                     .setPriority(XposedInterface.PRIORITY_DEFAULT)
                     .intercept(new XposedInterface.Hooker() {
                         @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
+                            L.i("[微信] MyKeyboardWindow.setInputEditText 触发! this=" + chain.getThisObject().getClass().getName());
                             try {
                                 if (plugin instanceof WeChatBasePlugin) {
                                     ViewGroup keyboardView = (ViewGroup) chain.getThisObject();
+                                    L.i("[微信] 调用 handleKeyboardSetup, keyboardView=" + keyboardView.getClass().getName());
                                     ((WeChatBasePlugin) plugin).handleKeyboardSetup(keyboardView);
+                                } else {
+                                    L.w("[微信] plugin 不是 WeChatBasePlugin 实例: " + plugin.getClass().getName());
                                 }
                             } catch (Exception e) {
                                 L.e(e, "[微信] MyKeyboardWindow.setInputEditText 异常");

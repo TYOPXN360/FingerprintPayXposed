@@ -326,14 +326,20 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
      * Matches module m1797: handle pay dialog via keyboard key detection.
      */
     protected void onPayDialogShownByKeyboard(Activity activity, ViewGroup rootView, View keyboardKeyView) {
+        L.i("[微信] onPayDialogShownByKeyboard 被调用, activity=" + activity.getClass().getName());
+        L.i("[微信] onPayDialogShownByKeyboard: rootView=" + (rootView != null ? rootView.getClass().getName() : "null"));
+        L.i("[微信] onPayDialogShownByKeyboard: keyboardKeyView=" + keyboardKeyView);
         Context context = rootView.getContext();
         Config config = Config.from(context);
         if (!config.isOn()) {
+            L.w("[微信] onPayDialogShownByKeyboard: 插件未启用");
             return;
         }
         int versionCode = getVersionCode(context);
+        L.i("[微信] onPayDialogShownByKeyboard: versionCode=" + versionCode);
         String passwordEncrypted = config.getPasswordEncrypted();
         if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
+            L.w("[微信] onPayDialogShownByKeyboard: 密码未设置");
             NotifyUtils.notifyBiometricIdentify(context, Lang.getString(R.id.toast_password_not_set_wechat));
             return;
         }
@@ -1110,27 +1116,43 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
     }
 
     public void handleKeyboardSetup(ViewGroup keyboardView) {
+        L.i("[微信] handleKeyboardSetup 被调用, keyboardView=" + keyboardView);
         if (keyboardView == null) {
+            L.w("[微信] handleKeyboardSetup: keyboardView 为 null");
             return;
         }
         Context context = keyboardView.getContext();
+        L.i("[微信] handleKeyboardSetup: context=" + context.getClass().getName());
         Config config = Config.from(context);
-        if (!config.isOn()) {
+        boolean isOn = config.isOn();
+        L.i("[微信] handleKeyboardSetup: isOn=" + isOn);
+        if (!isOn) {
+            L.w("[微信] handleKeyboardSetup: 插件未启用");
             return;
         }
         String passwordEncrypted = config.getPasswordEncrypted();
-        if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
+        String passwordIV = config.getPasswordIV();
+        L.i("[微信] handleKeyboardSetup: passwordEncrypted=" + (passwordEncrypted != null ? "有(" + passwordEncrypted.length() + "字符)" : "null"));
+        L.i("[微信] handleKeyboardSetup: passwordIV=" + (passwordIV != null ? "有(" + passwordIV.length() + "字符)" : "null"));
+        if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(passwordIV)) {
+            L.w("[微信] handleKeyboardSetup: 密码未设置");
             return;
         }
 
         keyboardView.post(() -> {
             try {
+                int keyboard0Id = context.getResources().getIdentifier("tenpay_keyboard_0", "id", context.getPackageName());
+                L.i("[微信] handleKeyboardSetup: tenpay_keyboard_0 资源ID=" + keyboard0Id);
+                View keyboard0View = keyboardView.findViewById(keyboard0Id);
+                L.i("[微信] handleKeyboardSetup: keyboard0View=" + keyboard0View);
+                Activity activity = (Activity) context;
+                L.i("[微信] handleKeyboardSetup: 即将调用 onPayDialogShownByKeyboard, activity=" + activity.getClass().getName());
                 onPayDialogShownByKeyboard(
-                    (Activity) context,
+                    activity,
                     (ViewGroup) keyboardView.getRootView(),
-                    keyboardView.findViewById(
-                        context.getResources().getIdentifier("tenpay_keyboard_0", "id", context.getPackageName()))
+                    keyboard0View
                 );
+                L.i("[微信] handleKeyboardSetup: onPayDialogShownByKeyboard 调用完成");
             } catch (Exception e) {
                 L.e(e, "[微信] handleKeyboardSetup 异常");
             }
