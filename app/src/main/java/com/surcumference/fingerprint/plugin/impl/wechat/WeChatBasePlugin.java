@@ -153,15 +153,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
     public void onActivityResumed(Activity activity) {
         L.d("Activity onResume =", activity);
         final String activityClzName = activity.getClass().getName();
-        if (activityClzName.contains("com.tencent.mm.plugin.setting.ui.setting.SettingsUI")
-                || activityClzName.contains("com.tencent.mm.plugin.wallet.pwd.ui.WalletPasswordSettingUI")
-                || activityClzName.contains("com.tencent.mm.ui.vas.VASCommonActivity") /** 8.0.18 */) {
-            Task.onMain(100, () -> doSettingsMenuInject(activity));
-        } else if (activityClzName.equals("com.tencent.mm.plugin.setting.ui.setting_new.MainSettingsUI") /* 8.0.66 */) {
-            Task.onMain(100, () -> doNewSettingsMenuInject(activity));
-        } else if (getVersionCode(activity) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_20 && activityClzName.contains("com.tencent.mm.ui.LauncherUI")) {
-            startFragmentObserver(activity);
-        } else if (activityClzName.contains(".WxaLiteAppTransparentLiteUI")) {
+        if (activityClzName.contains(".WxaLiteAppTransparentLiteUI")) {
             try {
                 mLiteAppActivity = activity;
                 mLiteAppFirstDetection = true;
@@ -267,9 +259,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             L.d("Activity onPause =", activity);
             final String activityClzName = activity.getClass().getName();
             if (!activityClzName.contains(".WalletPayUI") && !activityClzName.contains(".UIPageFragmentActivity")) {
-                if (getVersionCode(activity) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_20 && activityClzName.contains("com.tencent.mm.ui.LauncherUI")) {
-                    stopFragmentObserver(activity);
-                } else if (activityClzName.contains(".WxaLiteAppTransparentLiteUI")) {
+                if (activityClzName.contains(".WxaLiteAppTransparentLiteUI")) {
                     onPayDialogDismiss(activity, activity.getWindow().getDecorView(), DISMISS_WXA_LITE_APP_PAUSE);
                 }
             }
