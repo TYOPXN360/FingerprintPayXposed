@@ -447,7 +447,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         Task.onMain(500, rootView::requestLayout);
 
         // Start fingerprint - matches module m1795 + inline callback
-        initFingerPrintLock(context, config, false, passwordEncrypted, (password) -> {
+        initFingerPrintLock(activity, config, false, passwordEncrypted, (password) -> {
             BlackListUtils.applyIfNeeded(context);
             // Restore clickable only (not alpha) so touch events work
             restoreChildViewStates(finalPasswordLayout, false, mSavedAlphaMap, mSavedClickableMap);
