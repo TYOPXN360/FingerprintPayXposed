@@ -612,50 +612,21 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
 
         Handler handler = new Handler(Looper.getMainLooper());
         Random random = new Random();
-        int totalDelay = 0;
         for (int i = 0; i < pwd.length(); i++) {
             final char c = pwd.charAt(i);
-            if (i > 0) {
-                int delay = (int) (random.nextGaussian() * 3.33d + 70);
-                if (delay < 60) delay = 60;
-                if (delay > 80) delay = 80;
-                totalDelay += delay;
-            }
+            int delay = random.nextInt(10) + (i * 70);
             final View finalKeyboardParent = keyboardParent;
             final String packageName = context.getPackageName();
             handler.postDelayed(() -> {
                 String[] keyIds = digitPasswordKeyPad.keys.get(String.valueOf(c));
                 if (keyIds == null) {
-                    throw new IllegalArgumentException("Password contains invalid character: " + c);
+                    return;
                 }
                 View digitView = ViewUtils.findViewByName(finalKeyboardParent, packageName, keyIds);
-                if (digitView == null) {
-                    throw new NullPointerException("Cannot find digit view");
+                if (digitView != null && digitView.getContext() != null) {
+                    digitView.performClick();
                 }
-                if (digitView.getContext() == null) {
-                    return;
-                }
-                int w = Math.max(digitView.getWidth(), 0);
-                int h = Math.max(digitView.getHeight(), 0);
-                Random r = new Random(SystemClock.uptimeMillis());
-                float x = w > 0 ? r.nextInt(w) : 0;
-                float y = h > 0 ? r.nextInt(h) : 0;
-                ArrayList<MotionEvent> events = new ArrayList<>();
-                long downTime = SystemClock.uptimeMillis();
-                events.add(MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0));
-                events.add(MotionEvent.obtain(downTime, downTime + 25, MotionEvent.ACTION_UP, x, y, 0));
-                if (digitView.getContext() == null || events.isEmpty()) {
-                    return;
-                }
-                for (int j = 0; j < events.size(); j++) {
-                    MotionEvent event = events.get(j);
-                    try {
-                        digitView.dispatchTouchEvent(event);
-                    } finally {
-                        event.recycle();
-                    }
-                }
-            }, totalDelay);
+            }, delay);
         }
     }
 
@@ -1113,5 +1084,56 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         } catch (Exception e) {
             L.e(e);
         }
+    }
+
+    public static boolean isSettingsView(View view) {
+        if (view instanceof TextView) {
+            CharSequence text = ((TextView) view).getText();
+            return TextUtils.equals(text, "设置")
+                    || TextUtils.equals(text, "設置")
+                    || TextUtils.equals(text, "設定")
+                    || TextUtils.equals(text, "Settings");
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) view;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                if (isSettingsView(vg.getChildAt(i))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void showSettingsDialog(Context context) {
+        new SettingsView(context).showInDialog();
+    }
+
+    public void handleKeyboardSetup(ViewGroup keyboardView) {
+        if (keyboardView == null) {
+            return;
+        }
+        Context context = keyboardView.getContext();
+        Config config = Config.from(context);
+        if (!config.isOn()) {
+            return;
+        }
+        String passwordEncrypted = config.getPasswordEncrypted();
+        if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
+            return;
+        }
+
+        keyboardView.post(() -> {
+            try {
+                onPayDialogShownByKeyboard(
+                    (Activity) context,
+                    (ViewGroup) keyboardView.getRootView(),
+                    keyboardView.findViewById(
+                        context.getResources().getIdentifier("tenpay_keyboard_0", "id", context.getPackageName()))
+                );
+            } catch (Exception e) {
+                L.e(e, "[微信] handleKeyboardSetup 异常");
+            }
+        });
     }
 }

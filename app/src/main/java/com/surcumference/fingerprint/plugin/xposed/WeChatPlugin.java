@@ -2,6 +2,10 @@ package com.surcumference.fingerprint.plugin.xposed;
 import android.app.Activity;
 import android.app.Application;
 import android.os.UserHandle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.EditText;
 import androidx.annotation.Keep;
 import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
@@ -12,6 +16,7 @@ import com.surcumference.fingerprint.network.update.UpdateFactory;
 import com.surcumference.fingerprint.plugin.PluginApp;
 import com.surcumference.fingerprint.plugin.PluginFactory;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
+import com.surcumference.fingerprint.plugin.impl.wechat.WeChatBasePlugin;
 import com.surcumference.fingerprint.util.Tools;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.xposed.XposedInit;
@@ -95,6 +100,57 @@ public class WeChatPlugin {
                 });
 
             L.i("[微信插件] 所有 Hook 注册完成 ✓");
+
+            // PullDownListView.onItemLongClick - 长按设置入口
+            try {
+                Class<?> pullDownClass = application.getClassLoader().loadClass(
+                        "com.tencent.mm.ui.widget.listview.PullDownListView");
+                module.hook(pullDownClass.getDeclaredMethod("onItemLongClick",
+                                AdapterView.class, View.class, int.class, long.class))
+                    .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                    .intercept(new XposedInterface.Hooker() {
+                        @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
+                            try {
+                                View view = (View) chain.getArgs().get(1);
+                                if (plugin instanceof WeChatBasePlugin && WeChatBasePlugin.isSettingsView(view)) {
+                                    ((WeChatBasePlugin) plugin).showSettingsDialog(view.getContext());
+                                    return true;
+                                }
+                            } catch (Exception e) {
+                                L.e(e, "[微信] PullDownListView.onItemLongClick 异常");
+                            }
+                            return chain.proceed();
+                        }
+                    });
+                L.i("[微信插件] PullDownListView.onItemLongClick Hook 注册完成 ✓");
+            } catch (Exception e) {
+                L.d("[微信插件] PullDownListView Hook 跳过: " + e.getMessage());
+            }
+
+            // MyKeyboardWindow.setInputEditText - 支付键盘检测
+            try {
+                Class<?> keyboardClass = application.getClassLoader().loadClass(
+                        "com.tenpay.android.wechat.MyKeyboardWindow");
+                module.hook(keyboardClass.getDeclaredMethod("setInputEditText", EditText.class))
+                    .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                    .intercept(new XposedInterface.Hooker() {
+                        @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
+                            try {
+                                if (plugin instanceof WeChatBasePlugin) {
+                                    ViewGroup keyboardView = (ViewGroup) chain.getThisObject();
+                                    ((WeChatBasePlugin) plugin).handleKeyboardSetup(keyboardView);
+                                }
+                            } catch (Exception e) {
+                                L.e(e, "[微信] MyKeyboardWindow.setInputEditText 异常");
+                            }
+                            return chain.proceed();
+                        }
+                    });
+                L.i("[微信插件] MyKeyboardWindow.setInputEditText Hook 注册完成 ✓");
+            } catch (Exception e) {
+                L.d("[微信插件] MyKeyboardWindow Hook 跳过: " + e.getMessage());
+            }
+
         } catch (Throwable l) {
             L.e(l, "[微信插件] main() 异常");
         }
