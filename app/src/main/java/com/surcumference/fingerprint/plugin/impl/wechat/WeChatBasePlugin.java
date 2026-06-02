@@ -752,7 +752,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                 }
                 rootView.addView(fingerPrintLayout, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             }
-            initFingerPrintLock(context, config, smallPayDialogFloating, passwordEncrypted, (password)-> {
+            initFingerPrintLock(activity, config, smallPayDialogFloating, passwordEncrypted, (password)-> {
                 BlackListUtils.applyIfNeeded(context);
                 inputDigitalPassword(context, mInputEditText, password, keyboardViews, smallPayDialogFloating);
             }, switchToPasswordRunnable);
