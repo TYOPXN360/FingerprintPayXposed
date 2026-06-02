@@ -5,10 +5,15 @@
 
 > ⚠️ **非官方分支**: 本项目是基于 [FingerprintPay](https://github.com/eritpchy/FingerprintPay) 的一个**独立分支**，代码由 **AI (DeepSeek V4 Flash) 辅助生成**，非原作者 eritpchy 的官方版本。使用风险自负，不保证与上游版本行为一致。
 
+> ⚠️ **警告**: 使用本模块可能导致微信/支付宝风控、封号等问题，**概不负责**！
+
 ## 特点
 - 使用 **LibXposed API 101**（仅 LSPosed）
 - 移除 Magisk/Riru/Zygisk 模块等已过时组件
 - 移除淘宝 QQ 云闪付等软件支持，仅支持微信支付宝
+- 支持 **BiometricPrompt** 平台 API（Android 12+）
+- 密码使用 **AES/GCM + AndroidKeyStore** 加密存储
+
 ## 最低要求
 - 有指纹硬件
 - **Android 12+**（API 31+）
@@ -33,12 +38,37 @@
 | 软件 | 路径 |
 | ------ | -------------------------------- |
 | 支付宝 | 我的 → 设置 → 支付设置 → 指纹设置 |
-| 微信   | 我 → 设置 → 指纹设置 |
+| 微信   | 我 → 设置 → **长按任意设置项**弹出指纹支付设置 |
 
 
 ## 详细教程
 - [支付宝](./doc/Alipay)
 - [微信](./doc/WeChat)
+
+## 更新内容 (v8.5.0)
+### 🆕 微信指纹支付（初步确认可用）
+- **进入方式**：在微信设置页面**长按任意设置项**即可弹出指纹支付设置对话框
+- 支持 BiometricPrompt 平台 API 进行指纹认证
+- 认证成功后自动模拟点击数字键盘输入密码
+- 密码使用 AES/GCM + AndroidKeyStore 加密存储
+
+### 📋 自 v8.0.1 以来的变更
+#### 修复
+- 修复支付宝 `KeyPermanentlyInvalidatedException`：指纹录入变更时密钥失效，自动删除并重新生成
+- 修复支付宝 `UnrecoverableKeyException`：不可恢复密钥异常处理
+- 修复设置对话框 `ClassCastException`：DecorView 强转 LinearLayout 异常
+- 修复 `initFingerPrintLock` 中 Context 不是 Activity 的问题（影响指纹认证弹窗）
+
+#### 新增
+- 新增 PullDownListView.onItemLongClick Hook（长按设置入口）
+- 新增 MyKeyboardWindow.setInputEditText Hook（支付键盘检测）
+- 新增 AlertDialogImpl.showTipsImpl Hook（系统错误弹窗拦截）
+- 新增指纹密钥失效时的用户友好提示（支持中英文）
+
+#### 重构
+- 移除旧版设置注入方式（ListView HeaderView / 右上角菜单）
+- 移除未使用的旧版代码文件
+- 更新 LibXposed API 到 101.0.1
 
 ## 更新内容 (v8.0.0)
 ### 🚀 重大变更
