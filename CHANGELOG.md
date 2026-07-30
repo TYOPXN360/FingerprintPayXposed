@@ -1,6 +1,11 @@
 # Changelog
 
-### v8.5.0 (当前维护版本)
+### v8.5.1 (当前维护版本)
+
+- 更新版本号至 `8.5.1`，versionCode 更新为 `44`。
+- 使用 `wifikeyxposed.keystore` 构建 signed release APK。
+
+### v8.5.0 (历史维护版本)
 
 - 统一 Android 构建链为 Java 17 toolchain。
 - 更新 Android Gradle Plugin、Kotlin、AndroidX、Compose、Gson、OkHttp 和 RemotePreferences。
