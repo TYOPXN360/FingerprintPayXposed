@@ -1,4 +1,12 @@
 # Changelog
+
+### v8.5.0 (当前维护版本)
+
+- 统一 Android 构建链为 Java 17 toolchain。
+- 更新 Android Gradle Plugin、Kotlin、AndroidX、Compose、Gson、OkHttp 和 RemotePreferences。
+- 移除 `READ_PHONE_STATE` 和 `WRITE_EXTERNAL_STORAGE` 权限，并通过 `dataExtractionRules` 排除云备份和设备迁移数据。
+- 当前作用域为微信和支付宝；以下历史版本记录中的其他应用支持不代表当前支持范围。
+
 ### v6.1.0 (2026-03-07)
 
 🚩 适配 微信 8.0.65+ 设置页面及支付弹窗
