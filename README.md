@@ -45,7 +45,9 @@
 - [支付宝](./doc/Alipay)
 - [微信](./doc/WeChat)
 
-## 当前版本 (v8.5.1)
+## 当前版本 (v8.5.2)
+- 🐛 修复微信指纹验证成功后不自动输入密码、取消指纹框后键盘不弹出、切换支付方式后再次验证不输密码等问题。
+- 兼容新旧版微信支付键盘（`MyKeyboardWindow` 及 8.0.7x 新增的 `HkWxKeyboardWindow`/`MiniAppKeyboardWindow`）。
 - 当前作用域仅包含微信和支付宝；仓库中保留的 QQ、淘宝及云闪付代码属于历史兼容实现，不代表当前支持承诺。
 - 构建链已统一使用 Java 17 toolchain，并更新 Android Gradle Plugin、Kotlin、AndroidX、Compose、Gson、OkHttp 和 RemotePreferences 依赖。
 - 应用关闭 Android Auto Backup，并通过 `dataExtractionRules` 排除云备份和设备迁移数据。

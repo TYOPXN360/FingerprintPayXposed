@@ -1,6 +1,17 @@
 # Changelog
 
-### v8.5.1 (当前维护版本)
+### v8.5.2 (当前维护版本)
+
+🐛 修复微信指纹支付以下问题:
+
+- **验证成功不自动输入密码**: BiometricPrompt 弹出导致支付 Activity onPause 时, 模块不再无条件取消指纹认证, 验证成功后密码可正常自动输入。
+- **关闭指纹验证框后键盘不弹出**: 取消指纹认证时恢复键盘容器/密码布局的可见性, 键盘可正常弹出用于手动输入。
+- **切换支付方式后再次验证仍不输密码**: 同根因修复; 同时新增键盘 attach/detach 生命周期监听, 切换支付方式后键盘重新显示时会重新触发指纹检测。
+- **验证成功/取消后重复弹出指纹框**: 增加防重入与 3 秒静默窗口, 避免 BiometricPrompt 关闭触发 onResume 后重复弹窗。
+- 兼容新旧版微信键盘类: 新增 `com.tenpay.wphk.HkWxKeyboardWindow` / `com.tenpay.miniapp.MiniAppKeyboardWindow` 的 `setInputEditText` Hook, 旧版 `MyKeyboardWindow` 路径保留。
+- 更新版本号至 `8.5.2`，versionCode 更新为 `45`。
+
+### v8.5.1 (历史维护版本)
 
 - 更新版本号至 `8.5.1`，versionCode 更新为 `44`。
 - 使用 `wifikeyxposed.keystore` 构建 signed release APK。
