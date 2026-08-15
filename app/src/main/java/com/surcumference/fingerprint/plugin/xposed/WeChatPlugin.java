@@ -128,31 +128,41 @@ public class WeChatPlugin {
             }
 
             // MyKeyboardWindow.setInputEditText - 支付键盘检测
-            try {
-                Class<?> keyboardClass = application.getClassLoader().loadClass(
-                        "com.tenpay.android.wechat.MyKeyboardWindow");
-                module.hook(keyboardClass.getDeclaredMethod("setInputEditText", EditText.class))
-                    .setPriority(XposedInterface.PRIORITY_DEFAULT)
-                    .intercept(new XposedInterface.Hooker() {
-                        @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
-                            L.i("[微信] MyKeyboardWindow.setInputEditText 触发! this=" + chain.getThisObject().getClass().getName());
-                            try {
-                                if (plugin instanceof WeChatBasePlugin) {
-                                    ViewGroup keyboardView = (ViewGroup) chain.getThisObject();
-                                    L.i("[微信] 调用 handleKeyboardSetup, keyboardView=" + keyboardView.getClass().getName());
-                                    ((WeChatBasePlugin) plugin).handleKeyboardSetup(keyboardView);
-                                } else {
-                                    L.w("[微信] plugin 不是 WeChatBasePlugin 实例: " + plugin.getClass().getName());
+            // 兼容新旧版微信键盘类:
+            //  - 旧版: com.tenpay.android.wechat.MyKeyboardWindow
+            //  - 8.0.7x+: com.tenpay.wphk.HkWxKeyboardWindow / com.tenpay.miniapp.MiniAppKeyboardWindow
+            //    (这些新键盘类不继承 MyKeyboardWindow, 各自实现了 setInputEditText)
+            String[] keyboardClassNames = new String[]{
+                    "com.tenpay.android.wechat.MyKeyboardWindow",
+                    "com.tenpay.wphk.HkWxKeyboardWindow",
+                    "com.tenpay.miniapp.MiniAppKeyboardWindow",
+            };
+            for (String keyboardClassName : keyboardClassNames) {
+                try {
+                    Class<?> keyboardClass = application.getClassLoader().loadClass(keyboardClassName);
+                    module.hook(keyboardClass.getDeclaredMethod("setInputEditText", EditText.class))
+                        .setPriority(XposedInterface.PRIORITY_DEFAULT)
+                        .intercept(new XposedInterface.Hooker() {
+                            @Override public Object intercept(XposedInterface.Chain chain) throws Throwable {
+                                L.i("[微信] " + keyboardClassName + ".setInputEditText 触发! this=" + chain.getThisObject().getClass().getName());
+                                try {
+                                    if (plugin instanceof WeChatBasePlugin) {
+                                        ViewGroup keyboardView = (ViewGroup) chain.getThisObject();
+                                        L.i("[微信] 调用 handleKeyboardSetup, keyboardView=" + keyboardView.getClass().getName());
+                                        ((WeChatBasePlugin) plugin).handleKeyboardSetup(keyboardView);
+                                    } else {
+                                        L.w("[微信] plugin 不是 WeChatBasePlugin 实例: " + plugin.getClass().getName());
+                                    }
+                                } catch (Exception e) {
+                                    L.e(e, "[微信] " + keyboardClassName + ".setInputEditText 异常");
                                 }
-                            } catch (Exception e) {
-                                L.e(e, "[微信] MyKeyboardWindow.setInputEditText 异常");
+                                return chain.proceed();
                             }
-                            return chain.proceed();
-                        }
-                    });
-                L.i("[微信插件] MyKeyboardWindow.setInputEditText Hook 注册完成 ✓");
-            } catch (Exception e) {
-                L.d("[微信插件] MyKeyboardWindow Hook 跳过: " + e.getMessage());
+                        });
+                    L.i("[微信插件] " + keyboardClassName + ".setInputEditText Hook 注册完成 ✓");
+                } catch (Throwable e) {
+                    L.d("[微信插件] " + keyboardClassName + " Hook 跳过: " + e.getMessage());
+                }
             }
 
         } catch (Throwable l) {

@@ -67,6 +67,20 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
     private FragmentObserver mFragmentObserver;
     private int mWeChatVersionCode = 0;
     private boolean mFingerprintIdentifyTemporaryBlocking = false;
+    /**
+     * 指纹认证对话框(BiometricPrompt)是否正在显示。
+     * BiometricPrompt 弹出时支付 Activity 会 onPause，
+     * 此时绝不能取消指纹认证或清理支付对话框状态，
+     * 否则会出现"验证成功却不输入密码 / 取消后键盘不弹出"的问题。
+     */
+    private boolean mFingerprintVerifying = false;
+    /**
+     * 上次指纹流程结束(验证成功/取消/失败)的时间戳(uptimeMillis)。
+     * BiometricPrompt 关闭会触发 Activity onResume, 从而再次走支付对话框检测,
+     * 此时需要静默一段时间, 避免"验证成功/取消后立刻又弹出指纹框"。
+     * 键盘 detach(如切换支付方式)时会清零, 以便重新弹出指纹框。
+     */
+    private long mLastFingerprintDismissTime = 0;
 
     // WxaLiteAppTransparentLiteUI support (WeChat 8.0.65+)
     private ViewTreeObserver.OnGlobalLayoutListener mKeyboardLayoutListener;
@@ -101,12 +115,21 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         mFingerprintIdentify.decryptPasscode(passwordEncrypted, new BiometricPromptHandler.IdentifyListener() {
 
                     @Override
+                    public void onInited(BiometricPromptHandler h) {
+                        mFingerprintVerifying = true;
+                    }
+
+                    @Override
                     public void onDecryptionSuccess(BiometricPromptHandler h, @NonNull String decryptedContent) {
+                        mFingerprintVerifying = false;
+                        mLastFingerprintDismissTime = SystemClock.uptimeMillis();
                         onSuccessUnlockCallback.onFingerprintVerificationOK(decryptedContent);
                     }
 
                     @Override
                     public void onFailed(BiometricPromptHandler h, int errorCode, @Nullable String errString) {
+                        mFingerprintVerifying = false;
+                        mLastFingerprintDismissTime = SystemClock.uptimeMillis();
                         if ("KEY_INVALIDATED".equals(errString)) {
                             Toaster.showLong(Lang.getString(R.id.toast_fingerprint_key_invalidated));
                         }
@@ -158,8 +181,16 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                 mLiteAppActivity = activity;
                 mLiteAppFirstDetection = true;
                 final ViewGroup decorView = (ViewGroup) activity.getWindow().getDecorView();
-                final boolean[] wasVisible = new boolean[]{false};
                 final Context listenerContext = decorView.getContext();
+                // 先移除旧 listener, 防止 onResume 重复注册导致重复触发
+                if (mKeyboardLayoutListener != null) {
+                    decorView.getViewTreeObserver().removeOnGlobalLayoutListener(mKeyboardLayoutListener);
+                }
+                // wasVisible 初始化为当前键盘可见状态:
+                // 否则 BiometricPrompt 关闭触发 onResume 重新注册后, 键盘依然可见会被误判为"从不可见变可见",
+                // 导致验证成功/取消指纹后再次弹出指纹框。
+                final View initKeyboardKey = ViewUtils.findViewByName(decorView, activity.getPackageName(), "tenpay_keyboard_0");
+                final boolean[] wasVisible = new boolean[]{initKeyboardKey != null && ViewUtils.isShownInScreen(initKeyboardKey)};
                 mKeyboardLayoutListener = () -> {
                     try {
                         Activity currentActivity = mLiteAppActivity;
@@ -258,6 +289,15 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         try {
             L.d("Activity onPause =", activity);
             final String activityClzName = activity.getClass().getName();
+            // BiometricPrompt 指纹认证对话框弹出时，支付 Activity 会触发 onPause。
+            // 此时若取消指纹认证/清理支付对话框状态，会导致：
+            //  1) 验证成功后被 cancelled 标志拦截，密码不会自动输入；
+            //  2) 用户取消指纹框时 onFailed 不再回调，键盘不会恢复显示。
+            // 因此认证进行中一律跳过清理，等 BiometricPrompt 回调(onFailed/onSuccess)自行恢复。
+            if (mFingerprintVerifying) {
+                L.d("[微信] onPause 时指纹认证进行中, 跳过清理, 等待 BiometricPrompt 回调");
+                return;
+            }
             if (!activityClzName.contains(".WalletPayUI") && !activityClzName.contains(".UIPageFragmentActivity")) {
                 if (activityClzName.contains(".WxaLiteAppTransparentLiteUI")) {
                     onPayDialogDismiss(activity, activity.getWindow().getDecorView(), DISMISS_WXA_LITE_APP_PAUSE);
@@ -323,6 +363,17 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         Config config = Config.from(context);
         if (!config.isOn()) {
             L.w("[微信] onPayDialogShownByKeyboard: 插件未启用");
+            return;
+        }
+        // 防重入: 指纹流程进行中(cover 已显示或认证对话框正在弹出)时忽略重复触发,
+        // 避免 BiometricPrompt 关闭后 Activity onResume / 布局变化再次弹指纹框。
+        if (mFingerprintCoverShowing || mFingerprintVerifying) {
+            L.d("[微信] onPayDialogShownByKeyboard: 指纹流程进行中, 忽略重复触发");
+            return;
+        }
+        // 静默窗口: 验证成功/取消指纹后短时间内(BiometricPrompt 关闭触发 onResume)不再自动弹指纹框。
+        if (SystemClock.uptimeMillis() - mLastFingerprintDismissTime < 3000) {
+            L.d("[微信] onPayDialogShownByKeyboard: 指纹流程刚结束(静默窗口内), 跳过");
             return;
         }
         int versionCode = getVersionCode(context);
@@ -407,6 +458,14 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             }
             restoreKeyboardContainerHeight(finalKeyboardContainer);
             restoreChildViewStates(finalPasswordLayout, true, mSavedAlphaMap, mSavedClickableMap);
+            // 兜底: 微信在指纹认证期间可能把键盘容器/密码布局隐藏(GONE),
+            // 仅恢复 alpha 不够, 必须显式恢复可见性, 否则"关掉指纹框后键盘不弹出"。
+            if (finalKeyboardContainer != null) {
+                finalKeyboardContainer.setVisibility(View.VISIBLE);
+            }
+            if (finalPasswordLayout != null) {
+                finalPasswordLayout.setVisibility(View.VISIBLE);
+            }
             cancelFingerprintIdentify();
             mMockCurrentUser = false;
         };
@@ -634,6 +693,16 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             return;
         }
         if (mFingerprintIdentifyTemporaryBlocking) {
+            return;
+        }
+        // 指纹认证对话框(BiometricPrompt)关闭会触发 onResume 重新检测支付对话框,
+        // 验证成功/取消后短时间内不再自动弹出指纹框, 避免重复弹窗。
+        if (mFingerprintVerifying) {
+            L.d("[微信] onPayDialogShown: 指纹认证进行中, 跳过");
+            return;
+        }
+        if (SystemClock.uptimeMillis() - mLastFingerprintDismissTime < 3000) {
+            L.d("[微信] onPayDialogShown: 指纹流程刚结束(静默窗口内), 跳过");
             return;
         }
         String passwordEncrypted = config.getPasswordEncrypted();
@@ -905,6 +974,13 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         if (!Config.from(context).isOn()) {
             return;
         }
+        // 指纹认证对话框(BiometricPrompt)正在显示时禁止清理:
+        // 取消认证会把 cancelled 置 true, 导致验证成功/用户取消的回调被吞掉,
+        // 表现为"验证成功不输密码"或"取消后键盘不弹出"。
+        if (mFingerprintVerifying) {
+            L.d("[微信] onPayDialogDismiss 时指纹认证进行中, 跳过清理");
+            return;
+        }
         ViewGroup viewGroup = (ViewGroup) rootView;
         cancelFingerprintIdentify();
         if (rootView != null) {
@@ -954,6 +1030,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         }
         fingerprintIdentify.cancel();
         mFingerprintIdentify = null;
+        mFingerprintVerifying = false;
     }
 
     protected void doSettingsMenuInject(final Activity activity) {
@@ -1128,6 +1205,59 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             L.w("[微信] handleKeyboardSetup: 密码未设置");
             return;
         }
+
+        // 兜底: 监听键盘视图 attach/detach 生命周期。
+        // - detach: 支付对话框关闭 / 切换到其他支付选项, 取消指纹认证并清理 cover 状态;
+        // - attach: 键盘重新显示(如选择完付款方式后), 重新触发指纹检测。
+        // 覆盖"微信复用同一键盘实例(detach 后重新 attach), setInputEditText 不再重复调用"的情况。
+        View.OnAttachStateChangeListener existingListener = mView2OnAttachStateChangeListenerMap.get(keyboardView);
+        if (existingListener != null) {
+            keyboardView.removeOnAttachStateChangeListener(existingListener);
+        }
+        View.OnAttachStateChangeListener attachStateListener = new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+                L.i("[微信] 键盘视图重新 attach: " + v);
+                // 延迟等布局稳定后再检测, 避免 attach 初期视图未就绪
+                Task.onMain(300, () -> {
+                    try {
+                        if (mFingerprintCoverShowing || mFingerprintVerifying) {
+                            L.d("[微信] 键盘 attach 但指纹流程进行中, 跳过");
+                            return;
+                        }
+                        if (!v.isShown()) {
+                            L.d("[微信] 键盘 attach 但不可见, 跳过");
+                            return;
+                        }
+                        Activity activity = (Activity) v.getContext();
+                        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+                            return;
+                        }
+                        View key0 = ViewUtils.findViewByName(v, activity.getPackageName(), "tenpay_keyboard_0");
+                        if (key0 != null) {
+                            onPayDialogShownByKeyboard(activity, (ViewGroup) v.getRootView(), key0);
+                        }
+                    } catch (Exception e) {
+                        L.e(e);
+                    }
+                });
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                L.i("[微信] 键盘视图 detach, 清理指纹状态");
+                cancelFingerprintIdentify();
+                mLastFingerprintDismissTime = 0; // 键盘移除(如切换支付方式), 重新允许弹出指纹框
+                if (mFingerprintCoverShowing) {
+                    restoreChildViewStates(mKeyboardPasswordLayout, true, mSavedAlphaMap, mSavedClickableMap);
+                    mSavedAlphaMap.clear();
+                    mSavedClickableMap.clear();
+                    mFingerprintCoverShowing = false;
+                }
+            }
+        };
+        keyboardView.addOnAttachStateChangeListener(attachStateListener);
+        mView2OnAttachStateChangeListenerMap.put(keyboardView, attachStateListener);
 
         keyboardView.post(() -> {
             try {
