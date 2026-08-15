@@ -6,6 +6,8 @@ import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.os.Build;
 import android.os.CancellationSignal;
+import android.os.Handler;
+import android.os.Looper;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 
@@ -42,6 +44,13 @@ public class BiometricPromptHandler {
 
     private static final String KEY_NAME = "fingerprintpay_biometric_key";
     private static final String ANDROID_KEYSTORE = "AndroidKeyStore";
+    /**
+     * 加解密失败后的自动重试次数上限。
+     * Keystore 的 GCM Cipher 与认证绑定: 若指纹第一次按错(onAuthenticationFailed)再按对,
+     * 或系统返回的 CryptoObject 状态异常, doFinal 可能抛 IllegalBlockSizeException(操作已失效)。
+     * 此时重新创建 Cipher 并重新发起认证即可恢复。
+     */
+    private static final int MAX_RETRY = 2;
 
     private final Activity activity;
     private final Config config;
@@ -49,6 +58,7 @@ public class BiometricPromptHandler {
     private boolean isEncryptMode;
     private boolean cancelled;
     private CancellationSignal cancellationSignal;
+    private int mRetryCount = 0;
 
     public BiometricPromptHandler(@NonNull Activity activity) {
         this.activity = activity;
@@ -71,6 +81,7 @@ public class BiometricPromptHandler {
 
     public void cancel() {
         this.cancelled = true;
+        this.mRetryCount = 0;
         if (cancellationSignal != null) {
             cancellationSignal.cancel();
             cancellationSignal = null;
@@ -79,7 +90,10 @@ public class BiometricPromptHandler {
 
     private void startBiometric(@NonNull IdentifyListener listener) {
         cancelled = false;
+        authenticateInternal(listener);
+    }
 
+    private void authenticateInternal(@NonNull IdentifyListener listener) {
         BiometricManager biometricManager = activity.getSystemService(BiometricManager.class);
         if (biometricManager == null) {
             listener.onFailed(this, -1, "BiometricManager not available");
@@ -135,6 +149,26 @@ public class BiometricPromptHandler {
                         listener.onSuccess();
                     } catch (Exception e) {
                         L.e(e, "[Biometric] 加解密失败");
+                        // Keystore GCM Cipher 与认证绑定, 认证状态异常(如指纹首次按错再按对)时
+                        // doFinal 会因操作已失效抛 IllegalBlockSizeException。
+                        // 自动重新创建 Cipher 并发起认证, 通常重试一次即可成功。
+                        if (!cancelled && mRetryCount < MAX_RETRY) {
+                            mRetryCount++;
+                            L.i("[Biometric] 加解密失败, 自动重试 " + mRetryCount + "/" + MAX_RETRY
+                                + " 错误=" + e + " cause=" + (e.getCause() != null ? e.getCause() : "null"));
+                            if (cancellationSignal != null) {
+                                cancellationSignal.cancel();
+                                cancellationSignal = null;
+                            }
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                if (cancelled) {
+                                    return;
+                                }
+                                authenticateInternal(listener);
+                            }, 400);
+                            return;
+                        }
+                        mRetryCount = 0;
                         listener.onFailed(BiometricPromptHandler.this, -1, "Crypto error: " + e.getMessage());
                     }
                 }
